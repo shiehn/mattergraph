@@ -75,24 +75,12 @@ class SearchReq(BaseModel):
 
 @app.post("/api/search")
 def search(req: SearchReq) -> list[dict]:
+    from .query import search_skins
+
     atlas: Atlas = state["atlas"]
-    ids, mat = atlas.skin_matrix()
-    if not ids:
+    results = search_skins(atlas, _embedder(), req.prompt, topk=req.topk)
+    if not results:
         raise HTTPException(400, "atlas has no skin embeddings")
-    qv = _embedder().embed_text([req.prompt])[0]
-    sims = mat @ qv
-    feats = atlas.skin_features()
-    top = np.argsort(-sims)[: req.topk]
-    results = []
-    for i in top:
-        sid = ids[i]
-        f = feats.get(sid, {})
-        results.append({
-            "skin_id": sid,
-            "cos": float(sims[i]),
-            "decay_t60_s": round(f.get("decay_t60_s", 0), 2),
-            "centroid_hz": int(f.get("centroid_hz", 0)),
-        })
     return results
 
 

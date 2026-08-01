@@ -156,10 +156,13 @@ async function gateShow(prompt) {
     body: JSON.stringify({ prompt, topk: 1 }),
   })).json();
   gateCurrent = { prompt, skin_id: hits[0].skin_id };
+  // Audition register must match the prompt's register, same as retrieval.
+  const gateProbe = /\b(deep|bass|low|thump|sub|kick|tom)\b/i.test(prompt)
+    ? "bass_groove" : "pluck_arpeggio";
   $("gatemeta").textContent =
-    `top-1: ${hits[0].skin_id} · cos ${hits[0].cos.toFixed(3)} · t60 ${hits[0].decay_t60_s}s · probe: pluck_arpeggio`;
+    `top-1: ${hits[0].skin_id} · cos ${hits[0].cos.toFixed(3)} · t60 ${hits[0].decay_t60_s}s · probe: ${gateProbe}`;
   $("gateplayer").innerHTML =
-    `<audio controls autoplay src="${wavUrl({ skin_id: hits[0].skin_id, probe: "pluck_arpeggio" })}"></audio>`;
+    `<audio controls autoplay src="${wavUrl({ skin_id: hits[0].skin_id, probe: gateProbe })}"></audio>`;
 }
 
 window.gateNext = async () => {

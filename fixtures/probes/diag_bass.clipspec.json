@@ -1,0 +1,9 @@
+{
+  "schema_version": "0.1.0",
+  "name": "diag_bass",
+  "description": "Diagnostic probe: single C2 strike. Low-register timbre snapshot so 'deep/dark/bass' prompts have something in the atlas that actually sounds low (register-probe lesson from sas-patch-service).",
+  "bpm": 110,
+  "notes": [
+    {"pitch": 36, "start_qn": 0.0, "dur_qn": 1.2, "vel": 104, "chan": 0}
+  ]
+}

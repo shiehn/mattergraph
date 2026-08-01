@@ -81,6 +81,18 @@ class Atlas:
                                mean.astype(np.float32).tobytes()))
         self.conn.commit()
 
+    def render_matrix(self) -> tuple[list[str], np.ndarray]:
+        """Per-render embeddings with their skin ids — for best-probe-match
+        scoring (a skin matches a prompt if ANY of its register probes does)."""
+        rows = self.conn.execute(
+            """SELECT r.skin_id, e.dim, e.vec FROM embeddings e
+               JOIN renders r ON r.id = e.render_id WHERE r.gate_passed = 1
+               ORDER BY r.skin_id""").fetchall()
+        skin_ids = [r[0] for r in rows]
+        mat = np.stack([np.frombuffer(r[2], dtype=np.float32, count=r[1]) for r in rows]) \
+            if rows else np.zeros((0, 512), dtype=np.float32)
+        return skin_ids, mat
+
     def skin_matrix(self) -> tuple[list[str], np.ndarray]:
         rows = self.conn.execute(
             "SELECT skin_id, dim, vec FROM skin_embeddings ORDER BY skin_id").fetchall()
