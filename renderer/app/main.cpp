@@ -1,6 +1,6 @@
 // mattergraph-render: deterministic offline renderer CLI (plan §10, v0 subset).
 //
-//   mattergraph-render --midi phrase.clipspec.json --skin glass.json \
+//   mattergraph-render --midi phrase.clipspec.json --skin glass.json
 //       --seed 1 --sample-rate 48000 --out /tmp/job-0001 [--normalize -1.0]
 //
 // Writes audio.wav, render_result.json, midi_fidelity_audit.json into --out.
