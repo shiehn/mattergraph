@@ -43,9 +43,12 @@ Anchor skins: `skins/anchors/{glass, wood_bar, metal_bell, membrane}.json`.
 - [x] MIDI fidelity audit artifact (0-sample tolerance, enforced in tests and CLI)
 - [x] CLI (`mattergraph-render`) with exit-code taxonomy
 - [x] First anchor skins (glass, wood bar, metal bell, membrane)
-- [ ] SMF ingestion (integer tick arithmetic, tempo maps)
-- [ ] Remaining anchor skins + probe phrases (pluck arp, pad chords, expressive lead, range sweep)
+- [x] SMF ingestion (formats 0/1, exact 128-bit tick arithmetic — zero tempo-map drift by construction)
+- [x] Probe phrases: bass groove, velocity ladder, pluck arpeggio, pad chords, range sweep
+- [x] CI: Linux + macOS build/test + ASan/UBSan job
+- [ ] Expressive-lead probe (needs pitch bend/pressure in the timeline — reserved)
 - [ ] Research loop v0 (Sobol → render → gates → CLAP/features → atlas)
+- [ ] More anchor skins via lab curation
 
 ## License
 

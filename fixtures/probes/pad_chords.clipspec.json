@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1.0",
+  "name": "pad_chords",
+  "description": "Probe 2 (plan §11): sustained chords (Cm9 -> Ab maj7) held for two bars each. Exposes sustain behavior — v0 modal skins will decay; this probe exists for the sustain experiment.",
+  "bpm": 80,
+  "time_signature": {"numerator": 4, "denominator": 4},
+  "notes": [
+    {"pitch": 36, "start_qn": 0.0, "dur_qn": 7.8, "vel": 88, "chan": 0},
+    {"pitch": 48, "start_qn": 0.0, "dur_qn": 7.8, "vel": 76, "chan": 0},
+    {"pitch": 55, "start_qn": 0.0, "dur_qn": 7.8, "vel": 72, "chan": 0},
+    {"pitch": 58, "start_qn": 0.0, "dur_qn": 7.8, "vel": 70, "chan": 0},
+    {"pitch": 62, "start_qn": 0.0, "dur_qn": 7.8, "vel": 74, "chan": 0},
+    {"pitch": 32, "start_qn": 8.0, "dur_qn": 7.8, "vel": 88, "chan": 0},
+    {"pitch": 44, "start_qn": 8.0, "dur_qn": 7.8, "vel": 74, "chan": 0},
+    {"pitch": 51, "start_qn": 8.0, "dur_qn": 7.8, "vel": 70, "chan": 0},
+    {"pitch": 56, "start_qn": 8.0, "dur_qn": 7.8, "vel": 72, "chan": 0},
+    {"pitch": 60, "start_qn": 8.0, "dur_qn": 7.8, "vel": 76, "chan": 0}
+  ]
+}

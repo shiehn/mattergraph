@@ -18,6 +18,7 @@
 #include <nlohmann/json.hpp>
 
 #include "mattergraph/midi/clipspec.h"
+#include "mattergraph/midi/smf.h"
 #include "mattergraph/render/renderer.h"
 #include "mattergraph/render/wav.h"
 #include "mattergraph/skin/soundskin.h"
@@ -81,8 +82,18 @@ int main(int argc, char** argv) {
 
   mattergraph::midi::CanonicalTimeline timeline{0, 0, 0, 0, {}, 0};
   try {
-    timeline = mattergraph::midi::buildTimelineFromClipSpecFile(args->midi,
-                                                                args->sample_rate);
+    // Dispatch by magic: Standard MIDI Files start with "MThd"; anything else
+    // is treated as ClipSpec JSON.
+    char magic[4] = {};
+    std::ifstream probe(args->midi, std::ios::binary);
+    probe.read(magic, 4);
+    if (probe.gcount() == 4 && std::memcmp(magic, "MThd", 4) == 0) {
+      timeline = mattergraph::midi::buildTimelineFromSmfFile(args->midi,
+                                                             args->sample_rate);
+    } else {
+      timeline = mattergraph::midi::buildTimelineFromClipSpecFile(args->midi,
+                                                                  args->sample_rate);
+    }
   } catch (const std::exception& e) {
     std::cerr << "invalid MIDI: " << e.what() << "\n";
     return 2;

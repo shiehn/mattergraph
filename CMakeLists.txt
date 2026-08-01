@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(nlohmann_json Catch2)
 
 add_library(mattergraph-core
   engine/src/midi/clipspec.cpp
+  engine/src/midi/smf.cpp
   engine/src/skin/soundskin.cpp
   engine/src/dsp/modal_voice.cpp
   engine/src/render/renderer.cpp
@@ -33,6 +34,7 @@ target_compile_options(mattergraph-render PRIVATE -Wall -Wextra -Wpedantic -Werr
 enable_testing()
 add_executable(mg_tests
   tests/test_clipspec_timeline.cpp
+  tests/test_smf_timeline.cpp
   tests/test_modal_render.cpp)
 target_link_libraries(mg_tests PRIVATE mattergraph-core Catch2::Catch2WithMain)
 target_compile_options(mg_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
