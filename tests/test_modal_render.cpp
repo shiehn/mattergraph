@@ -5,6 +5,7 @@
 
 #include "mattergraph/midi/clipspec.h"
 #include "mattergraph/render/renderer.h"
+#include "mattergraph/render/wav.h"
 #include "mattergraph/skin/soundskin.h"
 
 using mattergraph::midi::buildTimelineFromClipSpecFile;
@@ -138,6 +139,62 @@ TEST_CASE("friction renders are deterministic") {
   const RenderResult a = renderTimeline(tl, skin, 5);
   const RenderResult b = renderTimeline(tl, skin, 5);
   REQUIRE(a.interleaved == b.interleaved);
+}
+
+TEST_CASE("wav reader roundtrips the writer's output") {
+  namespace fs = std::filesystem;
+  std::vector<float> tone(4800);
+  for (std::size_t n = 0; n < tone.size(); ++n) {
+    tone[n] = 0.5f * std::sin(2.0f * 3.14159265f * 440.0f *
+                              static_cast<float>(n) / 48000.0f);
+  }
+  const fs::path tmp = fs::temp_directory_path() / "mg_roundtrip.wav";
+  mattergraph::render::writeWavF32(tmp, tone, 48000, 1);
+  const auto back = mattergraph::render::readWavMono(tmp, 48000);
+  REQUIRE(back.size() == tone.size());
+  for (std::size_t n = 0; n < tone.size(); n += 480) {
+    CHECK(std::abs(back[n] - tone[n]) < 1e-6f);
+  }
+  fs::remove(tmp);
+}
+
+TEST_CASE("periodic exciter sustains at pitch and decays after note-off") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_sustain.clipspec.json"), 48000);
+  const auto skin = loadSoundSkinFromFile(skinPath("periodic_fat_bass.json"));
+  const RenderResult a = renderTimeline(tl, skin, 21);
+  const RenderResult b = renderTimeline(tl, skin, 21);
+  REQUIRE(a.audit.passed);
+  REQUIRE(a.interleaved == b.interleaved);  // fixed phases: fully deterministic
+  const double early = windowRms(a.interleaved, 24000, 48000);
+  const double late = windowRms(a.interleaved, 120000, 144000);
+  REQUIRE(early > 1e-4);
+  CHECK(late > early * 0.25);
+  const std::int64_t off = tl.notes()[0].off_sample;
+  const double tail = windowRms(a.interleaved, off + 48000,
+                                std::min<std::int64_t>(off + 72000, a.stats.frames));
+  CHECK(tail < late * 0.3);
+}
+
+TEST_CASE("sample exciter renders deterministically from provided PCM") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_strike.clipspec.json"), 48000);
+  const auto skin = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "sample_test", "skin_seed": 9,
+    "exciter": {"type": "sample", "sample": "inline.wav", "sample_blend": 0.8},
+    "body": {"mode_count": 12, "t60_base_s": 1.0}})");
+  // Deterministic synthetic transient in place of a bank asset.
+  std::vector<float> pcm(2400);
+  for (std::size_t n = 0; n < pcm.size(); ++n) {
+    const float t = static_cast<float>(n) / 48000.0f;
+    pcm[n] = std::exp(-t * 80.0f) * std::sin(2.0f * 3.14159265f * 900.0f * t);
+  }
+  const RenderResult a = renderTimeline(tl, skin, 3, 0.0, &pcm);
+  const RenderResult b = renderTimeline(tl, skin, 3, 0.0, &pcm);
+  REQUIRE(a.audit.passed);
+  REQUIRE(a.interleaved == b.interleaved);
+  const auto& note = tl.notes()[0];
+  CHECK(windowRms(a.interleaved, note.on_sample, note.off_sample) > 1e-4);
+  // A sample-type skin without PCM must be rejected, not rendered silent.
+  CHECK_THROWS(renderTimeline(tl, skin, 3, 0.0, nullptr));
 }
 
 TEST_CASE("normalize option hits the requested peak") {

@@ -1,0 +1,20 @@
+{
+  "schema_version": "0.1.0",
+  "name": "sampled_snare_glass",
+  "skin_seed": 808,
+  "_note": "Requires --exciter-dir assets/exciters (bank asset referenced by content hash).",
+  "exciter": {"type": "sample", "sample": "snare-standard-e17de27a.wav",
+              "sample_blend": 0.8, "hardness": 0.7, "color": 0.75, "level": 0.9},
+  "body": {
+    "mode_count": 20,
+    "inharmonicity": 0.72,
+    "brightness": 0.62,
+    "t60_base_s": 1.6,
+    "damping_slope": 0.55,
+    "irregularity": 0.18,
+    "position": 0.4
+  },
+  "velocity": {"to_level": 0.85, "to_brightness": 0.5, "to_hardness": 0.35},
+  "release": {"mode": "damped", "damp_factor": 6.0},
+  "radiation": {"stereo_spread": 0.55, "gain": 0.5}
+}

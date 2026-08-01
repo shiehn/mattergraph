@@ -30,6 +30,7 @@ struct Args {
   std::filesystem::path midi;
   std::filesystem::path skin;
   std::filesystem::path out;
+  std::filesystem::path exciter_dir;
   std::uint64_t seed = 0;
   std::uint32_t sample_rate = 48000;
   std::optional<double> normalize_dbfs;
@@ -59,6 +60,8 @@ std::optional<Args> parseArgs(int argc, char** argv) {
       a.sample_rate = static_cast<std::uint32_t>(std::stoul(v));
     } else if (flag == "--normalize" && (v = next())) {
       a.normalize_dbfs = std::stod(v);
+    } else if (flag == "--exciter-dir" && (v = next())) {
+      a.exciter_dir = v;
     } else {
       return std::nullopt;
     }
@@ -107,11 +110,26 @@ int main(int argc, char** argv) {
     return 3;
   }
 
+  std::vector<float> exciter_pcm;
+  if (skin.exciter.type == mattergraph::skin::ExciterType::sample) {
+    if (args->exciter_dir.empty()) {
+      std::cerr << "invalid skin: sample-type skin needs --exciter-dir\n";
+      return 3;
+    }
+    try {
+      exciter_pcm = mattergraph::render::readWavMono(
+          args->exciter_dir / skin.exciter.sample, args->sample_rate);
+    } catch (const std::exception& e) {
+      std::cerr << "invalid skin: " << e.what() << "\n";
+      return 3;
+    }
+  }
+
   mattergraph::render::RenderResult result;
   try {
     result = mattergraph::render::renderTimeline(
-        timeline, skin, args->seed,
-        args->normalize_dbfs.value_or(0.0));
+        timeline, skin, args->seed, args->normalize_dbfs.value_or(0.0),
+        exciter_pcm.empty() ? nullptr : &exciter_pcm);
   } catch (const std::exception& e) {
     std::cerr << "render failure: " << e.what() << "\n";
     return 4;

@@ -38,8 +38,28 @@ void normalizeEnergy(std::vector<double>& x) {
 
 }  // namespace
 
+namespace {
+// polyBLEP band-limiting correction at a phase discontinuity.
+double polyblep(double t, double dt) {
+  if (t < dt) {
+    t /= dt;
+    return t + t - t * t - 1.0;
+  }
+  if (t > 1.0 - dt) {
+    t = (t - 1.0) / dt;
+    return t * t + t + t + 1.0;
+  }
+  return 0.0;
+}
+
+double blepSaw(double phase, double dt) {
+  return 2.0 * phase - 1.0 - polyblep(phase, dt);
+}
+}  // namespace
+
 ModalVoice::ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
-                       std::uint32_t sample_rate, std::uint64_t render_seed) {
+                       std::uint32_t sample_rate, std::uint64_t render_seed,
+                       const std::vector<float>* exciter_pcm) {
   const double sr = static_cast<double>(sample_rate);
   on_sample_ = note.on_sample;
   off_sample_ = note.off_sample;
@@ -108,6 +128,110 @@ ModalVoice::ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
     for (Mode& m : modes_) {
       m.amp /= amp_sum;
     }
+  }
+
+  if (skin.exciter.type == skin::ExciterType::periodic) {
+    // --- Band-limited tonal excitation at the note's exact pitch. ---
+    // Three polyBLEP saw voices (detuned ± cents), saw/square blend, tanh
+    // drive, color lowpass; sustained until note-off. Same unit-RMS + 1/t60
+    // drive compensation as friction (driven-resonator steady state ∝ τ).
+    constexpr double kMaxDriveSeconds = 30.0;
+    const auto drive_n = static_cast<std::size_t>(std::min(
+        static_cast<double>(off_sample_ - on_sample_), kMaxDriveSeconds * sr));
+    burst_.assign(std::max<std::size_t>(drive_n, 2), 0.0);
+
+    const double detune = skin.exciter.detune_cents;
+    const double ratios[3] = {std::exp2(-detune / 1200.0), 1.0,
+                              std::exp2(detune / 1200.0)};
+    double phases[3] = {0.13, 0.5, 0.87};  // fixed spread: deterministic
+    const double lp_a = mix(0.03, 0.9, std::pow(color_v, 1.5));
+    const double attack_s = mix(0.25, 0.01, hardness_v);
+    const auto attack_n = std::max<std::size_t>(
+        static_cast<std::size_t>(attack_s * sr), 1);
+    const double drive_amt = 1.0 + 6.0 * skin.exciter.drive;
+    const double drive_norm = std::tanh(drive_amt);
+    double lp = 0.0;
+    for (std::size_t n = 0; n < burst_.size(); ++n) {
+      double mix_v = 0.0;
+      for (int v = 0; v < 3; ++v) {
+        const double dt = f0_ * ratios[v] / sr;
+        phases[v] += dt;
+        phases[v] -= std::floor(phases[v]);
+        const double saw = blepSaw(phases[v], dt);
+        double sq_ph = phases[v] + 0.5;
+        sq_ph -= std::floor(sq_ph);
+        const double square = saw - blepSaw(sq_ph, dt);
+        mix_v += (1.0 - skin.exciter.wave) * saw + skin.exciter.wave * square;
+      }
+      mix_v = std::tanh(mix_v / 3.0 * drive_amt) / drive_norm;
+      lp += lp_a * (mix_v - lp);
+      const double env = n < attack_n
+                             ? 0.5 * (1.0 - std::cos(std::numbers::pi *
+                                                     static_cast<double>(n) /
+                                                     static_cast<double>(attack_n)))
+                             : 1.0;
+      burst_[n] = lp * env;
+    }
+    double sum_sq = 0.0;
+    for (double s : burst_) {
+      sum_sq += s * s;
+    }
+    const double rms = std::sqrt(sum_sq / static_cast<double>(burst_.size()));
+    const double drive = 0.04 * energy /
+                         ((0.3 + skin.body.t60_base_s) * std::max(rms, 1e-9));
+    for (double& s : burst_) {
+      s *= drive;
+    }
+    const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
+    end_sample_ = off_sample_ + static_cast<std::int64_t>(tail_s * sr) + 1;
+    gain_ = skin.radiation.gain;
+    return;
+  }
+
+  if (skin.exciter.type == skin::ExciterType::sample) {
+    // --- Bank-transient excitation: the sample's micro-detail, the body's
+    // pitch and material. Energy-normalized like the strike path (loudness is
+    // velocity's job, plan §3.5); a light color lowpass keeps the velocity→
+    // brightness mapping meaningful on samples too.
+    if (exciter_pcm == nullptr || exciter_pcm->empty()) {
+      burst_.assign(2, 0.0);  // renderer validates and rejects before this
+    } else {
+      const double lp_a = mix(0.15, 0.95, std::pow(color_v, 1.5));
+      burst_.resize(exciter_pcm->size());
+      double lp = 0.0;
+      for (std::size_t n = 0; n < burst_.size(); ++n) {
+        lp += lp_a * (static_cast<double>((*exciter_pcm)[n]) - lp);
+        burst_[n] = lp;
+      }
+      normalizeEnergy(burst_);
+      // Blend with the deterministic synthetic strike for attack definition.
+      const double blend = skin.exciter.sample_blend;
+      if (blend < 1.0) {
+        const double pulse_s = mix(0.030, 0.0015, hardness_v);
+        const auto pulse_n = std::min<std::size_t>(
+            burst_.size(), std::max<std::size_t>(2, static_cast<std::size_t>(pulse_s * sr)));
+        std::vector<double> pulse(pulse_n);
+        double plp = 0.0;
+        for (std::size_t n = 0; n < pulse_n; ++n) {
+          const double ph = static_cast<double>(n) / static_cast<double>(pulse_n);
+          const double raw = 0.5 * (1.0 - std::cos(2.0 * std::numbers::pi * ph));
+          plp += lp_a * (raw - plp);
+          pulse[n] = plp;
+        }
+        normalizeEnergy(pulse);
+        for (std::size_t n = 0; n < pulse_n; ++n) {
+          burst_[n] = blend * burst_[n] + (1.0 - blend) * pulse[n];
+        }
+        normalizeEnergy(burst_);
+      }
+      for (double& s : burst_) {
+        s *= energy;
+      }
+    }
+    const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
+    end_sample_ = off_sample_ + static_cast<std::int64_t>(tail_s * sr) + 1;
+    gain_ = skin.radiation.gain;
+    return;
   }
 
   if (skin.exciter.type == skin::ExciterType::friction) {

@@ -56,8 +56,11 @@ class RenderError : public std::runtime_error {
 // Throws RenderError on out-of-range pitch (zero active modes) or non-finite
 // output. If normalize_peak_dbfs is negative-finite, scales the final mix so
 // the peak sits at that level and records the gain in stats.
+// exciter_pcm: the loaded bank asset for `sample`-type skins (48 kHz mono);
+// required for those skins, ignored otherwise.
 RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
                             const skin::SoundSkin& skin, std::uint64_t seed,
-                            double normalize_peak_dbfs = 0.0);
+                            double normalize_peak_dbfs = 0.0,
+                            const std::vector<float>* exciter_pcm = nullptr);
 
 }  // namespace mattergraph::render

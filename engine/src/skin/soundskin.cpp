@@ -79,8 +79,13 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
         s.exciter.type = ExciterType::impulse;
       } else if (type == "friction") {
         s.exciter.type = ExciterType::friction;
+      } else if (type == "sample") {
+        s.exciter.type = ExciterType::sample;
+      } else if (type == "periodic") {
+        s.exciter.type = ExciterType::periodic;
       } else {
-        fail("SoundSkin: exciter.type must be 'noise_burst', 'impulse', or 'friction'");
+        fail("SoundSkin: exciter.type must be one of "
+             "'noise_burst', 'impulse', 'friction', 'sample', 'periodic'");
       }
     }
     s.exciter.hardness = numInRange(e, "hardness", 0, 1, s.exciter.hardness, "exciter");
@@ -90,6 +95,21 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
     s.exciter.roughness = numInRange(e, "roughness", 0, 1, s.exciter.roughness, "exciter");
     s.exciter.grit_rate_hz =
         numInRange(e, "grit_rate_hz", 5, 400, s.exciter.grit_rate_hz, "exciter");
+    if (auto sm = e.find("sample"); sm != e.end()) {
+      if (!sm->is_string()) {
+        fail("SoundSkin: exciter.sample must be a string filename");
+      }
+      s.exciter.sample = sm->get<std::string>();
+    }
+    s.exciter.sample_blend =
+        numInRange(e, "sample_blend", 0, 1, s.exciter.sample_blend, "exciter");
+    s.exciter.wave = numInRange(e, "wave", 0, 1, s.exciter.wave, "exciter");
+    s.exciter.detune_cents =
+        numInRange(e, "detune_cents", 0, 30, s.exciter.detune_cents, "exciter");
+    s.exciter.drive = numInRange(e, "drive", 0, 1, s.exciter.drive, "exciter");
+    if (s.exciter.type == ExciterType::sample && s.exciter.sample.empty()) {
+      fail("SoundSkin: exciter.type 'sample' requires exciter.sample");
+    }
   }
 
   if (auto it = root.find("body"); it != root.end()) {

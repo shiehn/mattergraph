@@ -9,8 +9,14 @@ namespace mattergraph::render {
 
 RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
                             const skin::SoundSkin& skin, std::uint64_t seed,
-                            double normalize_peak_dbfs) {
+                            double normalize_peak_dbfs,
+                            const std::vector<float>* exciter_pcm) {
   const auto& notes = timeline.notes();
+  if (skin.exciter.type == skin::ExciterType::sample &&
+      (exciter_pcm == nullptr || exciter_pcm->empty())) {
+    throw RenderError("skin '" + skin.name +
+                      "' needs its exciter sample loaded (--exciter-dir)");
+  }
 
   // Build every voice first: sizes the buffer and enforces the polyphony /
   // pitch-range contract before a single sample is produced.
@@ -18,7 +24,7 @@ RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
   voices.reserve(notes.size());
   std::int64_t end = timeline.totalSamples();
   for (const midi::NoteEvent& note : notes) {
-    dsp::ModalVoice v(skin, note, timeline.sampleRate(), seed);
+    dsp::ModalVoice v(skin, note, timeline.sampleRate(), seed, exciter_pcm);
     if (v.activeModes() == 0) {
       throw RenderError("pitch out of playable range for skin '" + skin.name +
                         "': note " + std::to_string(note.pitch));

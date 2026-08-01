@@ -14,7 +14,7 @@ namespace mattergraph::skin {
 // This is the plan's SoundSkin (§2.1) at its smallest viable scope: genome
 // macros + velocity mappings + release behavior + radiation + provenance seed.
 
-enum class ExciterType { noise_burst, impulse, friction };
+enum class ExciterType { noise_burst, impulse, friction, sample, periodic };
 enum class ReleaseMode { natural, damped };
 
 struct SoundSkin {
@@ -33,6 +33,14 @@ struct SoundSkin {
     // friction-type only: sustained excitation for the note's full duration.
     double roughness{0.5};      // 0..1 stick-slip grit depth
     double grit_rate_hz{90.0};  // 5..400 nominal slip-grain rate
+    // sample-type only: a bank transient excites the body. The engine stays
+    // IO-free at voice level — the render layer loads the PCM and passes it in.
+    std::string sample;         // bank filename (resolved against --exciter-dir)
+    double sample_blend{0.85};  // 0..1 sample vs synthetic-strike mix
+    // periodic-type only: band-limited tonal excitation at the note's pitch.
+    double wave{0.0};           // 0 saw .. 1 square (polyBLEP band-limited)
+    double detune_cents{8.0};   // 0..30 spread of the three voices
+    double drive{0.3};          // 0..1 saturation into the body
   } exciter;
 
   struct Body {

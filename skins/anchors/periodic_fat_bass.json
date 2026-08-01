@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1.0",
+  "name": "periodic_fat_bass",
+  "skin_seed": 707,
+  "exciter": {"type": "periodic", "hardness": 0.55, "color": 0.35, "level": 0.9,
+              "wave": 0.15, "detune_cents": 9, "drive": 0.55},
+  "body": {
+    "mode_count": 24,
+    "inharmonicity": 0.04,
+    "brightness": 0.45,
+    "t60_base_s": 0.5,
+    "damping_slope": 0.9,
+    "irregularity": 0.05,
+    "position": 0.5
+  },
+  "velocity": {"to_level": 0.85, "to_brightness": 0.55, "to_hardness": 0.3},
+  "release": {"mode": "damped", "damp_factor": 8.0},
+  "radiation": {"stereo_spread": 0.25, "gain": 0.55}
+}

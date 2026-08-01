@@ -24,6 +24,7 @@ DEFAULT_BIN = Path(os.environ.get(
     "MG_RENDER_BIN",
     Path(__file__).resolve().parents[2] / "build" / "mattergraph-render",
 ))
+EXCITER_DIR = Path(__file__).resolve().parents[2] / "assets/exciters"
 
 RMS_SILENCE_GATE = 10 ** (-60 / 20)  # -60 dBFS
 
@@ -49,7 +50,7 @@ def render_once(skin_json: str, midi_path: Path, seed: int,
         proc = subprocess.run(
             [str(DEFAULT_BIN), "--midi", str(midi_path), "--skin", str(skin_path),
              "--seed", str(seed), "--sample-rate", str(sample_rate),
-             "--out", str(out_dir)],
+             "--exciter-dir", str(EXCITER_DIR), "--out", str(out_dir)],
             capture_output=True, text=True, timeout=120,
         )
         if proc.returncode != 0:

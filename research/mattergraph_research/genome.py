@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 from dataclasses import dataclass, asdict
+from pathlib import Path
 
 import numpy as np
 from scipy.stats import qmc
@@ -34,12 +35,18 @@ class Genome:
     # v1 genes: velocity mappings are searched, not constants (behavior-contract
     # data showed vel->brightness inverted for 37% of the v0 space), and the
     # exciter gesture itself is a gene.
-    exciter_type: str = "noise_burst"  # "noise_burst" | "friction"
+    exciter_type: str = "noise_burst"  # noise_burst | friction | periodic | sample
     to_level: float = 0.85
     to_brightness: float = 0.4
     to_hardness: float = 0.3
     roughness: float = 0.5
     grit_rate_hz: float = 90.0
+    # v2 genes: periodic (wave/detune/drive), sample (bank file + blend).
+    wave: float = 0.0
+    detune_cents: float = 8.0
+    drive: float = 0.3
+    sample_file: str = ""
+    sample_blend: float = 0.85
 
     def skin_json(self, name: str) -> str:
         skin = {
@@ -54,6 +61,11 @@ class Genome:
                 "noisiness": round(self.noisiness, 6),
                 "roughness": round(self.roughness, 6),
                 "grit_rate_hz": round(self.grit_rate_hz, 6),
+                "wave": round(self.wave, 6),
+                "detune_cents": round(self.detune_cents, 6),
+                "drive": round(self.drive, 6),
+                "sample_blend": round(self.sample_blend, 6),
+                **({"sample": self.sample_file} if self.sample_file else {}),
             },
             "body": {
                 "mode_count": self.mode_count,
@@ -109,6 +121,11 @@ class Genome:
             to_hardness=float(v.get("to_hardness", 0.3)),
             roughness=float(e.get("roughness", 0.5)),
             grit_rate_hz=float(e.get("grit_rate_hz", 90.0)),
+            wave=float(e.get("wave", 0.0)),
+            detune_cents=float(e.get("detune_cents", 8.0)),
+            drive=float(e.get("drive", 0.3)),
+            sample_file=str(e.get("sample", "")),
+            sample_blend=float(e.get("sample_blend", 0.85)),
         )
 
 
@@ -130,21 +147,44 @@ _CONTINUOUS = [
     ("to_hardness", 0.0, 1.0, False),
     ("roughness", 0.0, 1.0, False),
     ("grit_rate_hz", 10.0, 300.0, True),
+    ("wave", 0.0, 1.0, False),
+    ("detune_cents", 1.0, 30.0, True),
+    ("drive", 0.0, 1.0, False),
+    ("sample_blend", 0.5, 1.0, False),
 ]
 _MODE_COUNT_RANGE = (4, 64)
-_FRICTION_FRACTION = 0.3
+# Exciter-type mix for sampling: strike-heavy, the three others equal-ish.
+_TYPE_CUTS = [(0.45, "noise_burst"), (0.65, "friction"), (0.83, "periodic"),
+              (1.01, "sample")]
+
+_MANIFEST_PATH = Path(__file__).resolve().parents[2] / "assets/exciters/manifest.json"
+
+
+def exciter_bank() -> list[str]:
+    try:
+        return [e["file"] for e in json.loads(_MANIFEST_PATH.read_text())]
+    except (OSError, ValueError):
+        return []
+
+
+def _pick_type(u: float, bank: list[str]) -> str:
+    for cut, name in _TYPE_CUTS:
+        if u < cut:
+            return name if (name != "sample" or bank) else "noise_burst"
+    return "noise_burst"
 
 
 def mutate(g: Genome, rng: np.random.Generator, mutation_rate: float = 0.35,
            sigma_frac: float = 0.15) -> Genome:
     """Gaussian mutation within bounds; occasional gesture flips and reseeds."""
     values = asdict(g)
+    bank = exciter_bank()
     for name, lo, hi, log_scale in _CONTINUOUS:
         if rng.random() >= mutation_rate:
             continue
         v = float(values[name])
         if log_scale:
-            lv = np.log(v) + rng.normal(0.0, sigma_frac * (np.log(hi) - np.log(lo)))
+            lv = np.log(max(v, lo)) + rng.normal(0.0, sigma_frac * (np.log(hi) - np.log(lo)))
             values[name] = float(np.exp(np.clip(lv, np.log(lo), np.log(hi))))
         else:
             values[name] = float(np.clip(v + rng.normal(0.0, sigma_frac * (hi - lo)), lo, hi))
@@ -152,17 +192,24 @@ def mutate(g: Genome, rng: np.random.Generator, mutation_rate: float = 0.35,
         lo_m, hi_m = _MODE_COUNT_RANGE
         values["mode_count"] = int(np.clip(g.mode_count + rng.integers(-8, 9), lo_m, hi_m))
     if rng.random() < 0.08:
-        values["exciter_type"] = ("friction" if g.exciter_type == "noise_burst"
-                                  else "noise_burst")
+        choices = ["noise_burst", "friction", "periodic"] + (["sample"] if bank else [])
+        choices = [c for c in choices if c != g.exciter_type]
+        values["exciter_type"] = choices[int(rng.integers(len(choices)))]
+    if values["exciter_type"] == "sample":
+        if not values.get("sample_file") or rng.random() < 0.15:
+            values["sample_file"] = bank[int(rng.integers(len(bank)))] if bank else ""
+        if not values["sample_file"]:
+            values["exciter_type"] = "noise_burst"
     if rng.random() < 0.2:
         values["skin_seed"] = int(rng.integers(0, 2**31))  # new irregularity realization
     return Genome(**values)
 
 
 def sobol_genomes(n: int, base_seed: int = 0) -> list[Genome]:
-    dims = len(_CONTINUOUS) + 2  # + mode_count + exciter_type
+    dims = len(_CONTINUOUS) + 3  # + mode_count + exciter_type + sample pick
     sampler = qmc.Sobol(d=dims, scramble=True, seed=base_seed)
     unit = sampler.random(n)
+    bank = exciter_bank()
     out: list[Genome] = []
     for i in range(n):
         row = unit[i]
@@ -174,9 +221,10 @@ def sobol_genomes(n: int, base_seed: int = 0) -> list[Genome]:
             else:
                 values[name] = lo + u * (hi - lo)
         lo_m, hi_m = _MODE_COUNT_RANGE
-        values["mode_count"] = int(round(lo_m + float(row[-2]) * (hi_m - lo_m)))
-        values["exciter_type"] = ("friction" if float(row[-1]) < _FRICTION_FRACTION
-                                  else "noise_burst")
+        values["mode_count"] = int(round(lo_m + float(row[-3]) * (hi_m - lo_m)))
+        values["exciter_type"] = _pick_type(float(row[-2]), bank)
+        values["sample_file"] = (bank[int(float(row[-1]) * len(bank)) % len(bank)]
+                                 if values["exciter_type"] == "sample" and bank else "")
         values["skin_seed"] = base_seed * 1_000_003 + i
         out.append(Genome(**values))  # type: ignore[arg-type]
     return out
