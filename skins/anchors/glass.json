@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1.0",
+  "name": "glass",
+  "skin_seed": 101,
+  "exciter": {"type": "noise_burst", "hardness": 0.85, "color": 0.85, "level": 0.9, "noisiness": 0.4},
+  "body": {
+    "mode_count": 20,
+    "inharmonicity": 0.76,
+    "brightness": 0.68,
+    "t60_base_s": 2.2,
+    "damping_slope": 0.55,
+    "irregularity": 0.18,
+    "position": 0.42
+  },
+  "velocity": {"to_level": 0.85, "to_brightness": 0.5, "to_hardness": 0.35},
+  "release": {"mode": "damped", "damp_factor": 7.0},
+  "radiation": {"stereo_spread": 0.55, "gain": 0.5}
+}

@@ -24,13 +24,28 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+## Render something
+
+```bash
+./build/mattergraph-render \
+  --midi fixtures/probes/bass_groove.clipspec.json \
+  --skin skins/anchors/glass.json \
+  --seed 48291 --sample-rate 48000 --normalize -1.0 --out /tmp/mg-out
+```
+
+Writes `audio.wav`, `render_result.json`, and `midi_fidelity_audit.json`.
+Anchor skins: `skins/anchors/{glass, wood_bar, metal_bell, membrane}.json`.
+
 ## Status
 
 - [x] Canonical timeline from ClipSpec JSON (fixed tempo, sample-exact, immutable)
-- [ ] Modal voice (exciter → modal bank → radiation) + offline renderer + WAV out
-- [ ] MIDI fidelity audit artifact
+- [x] Modal voice (exciter → modal bank → radiation) + offline renderer + WAV out
+- [x] MIDI fidelity audit artifact (0-sample tolerance, enforced in tests and CLI)
+- [x] CLI (`mattergraph-render`) with exit-code taxonomy
+- [x] First anchor skins (glass, wood bar, metal bell, membrane)
 - [ ] SMF ingestion (integer tick arithmetic, tempo maps)
-- [ ] CLI (`mattergraph-render`)
+- [ ] Remaining anchor skins + probe phrases (pluck arp, pad chords, expressive lead, range sweep)
+- [ ] Research loop v0 (Sobol → render → gates → CLAP/features → atlas)
 
 ## License
 

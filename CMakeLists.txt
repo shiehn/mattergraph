@@ -16,16 +16,27 @@ FetchContent_Declare(Catch2
 FetchContent_MakeAvailable(nlohmann_json Catch2)
 
 add_library(mattergraph-core
-  engine/src/midi/clipspec.cpp)
+  engine/src/midi/clipspec.cpp
+  engine/src/skin/soundskin.cpp
+  engine/src/dsp/modal_voice.cpp
+  engine/src/render/renderer.cpp
+  engine/src/render/wav.cpp)
 target_include_directories(mattergraph-core PUBLIC engine/include)
 target_link_libraries(mattergraph-core PRIVATE nlohmann_json::nlohmann_json)
 target_compile_options(mattergraph-core PRIVATE -Wall -Wextra -Wpedantic -Werror)
 
+add_executable(mattergraph-render renderer/app/main.cpp)
+target_link_libraries(mattergraph-render PRIVATE mattergraph-core
+  nlohmann_json::nlohmann_json)
+target_compile_options(mattergraph-render PRIVATE -Wall -Wextra -Wpedantic -Werror)
+
 enable_testing()
 add_executable(mg_tests
-  tests/test_clipspec_timeline.cpp)
+  tests/test_clipspec_timeline.cpp
+  tests/test_modal_render.cpp)
 target_link_libraries(mg_tests PRIVATE mattergraph-core Catch2::Catch2WithMain)
 target_compile_options(mg_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
 target_compile_definitions(mg_tests PRIVATE
-  MG_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+  MG_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
+  MG_SKINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/skins")
 add_test(NAME unit COMMAND mg_tests)

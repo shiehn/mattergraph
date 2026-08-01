@@ -1,0 +1,18 @@
+{
+  "schema_version": "0.1.0",
+  "name": "metal_bell",
+  "skin_seed": 303,
+  "exciter": {"type": "noise_burst", "hardness": 0.7, "color": 0.65, "level": 0.85, "noisiness": 0.35},
+  "body": {
+    "mode_count": 28,
+    "inharmonicity": 0.9,
+    "brightness": 0.55,
+    "t60_base_s": 6.5,
+    "damping_slope": 0.35,
+    "irregularity": 0.28,
+    "position": 0.24
+  },
+  "velocity": {"to_level": 0.8, "to_brightness": 0.4, "to_hardness": 0.3},
+  "release": {"mode": "natural", "damp_factor": 1.0},
+  "radiation": {"stereo_spread": 0.7, "gain": 0.4}
+}

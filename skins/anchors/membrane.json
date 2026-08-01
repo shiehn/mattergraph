@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1.0",
+  "name": "membrane",
+  "skin_seed": 404,
+  "_note": "Approximation: stiff-string ratios cannot reproduce Bessel mode spacing; a dedicated membrane body node is planned (plan rev 3.0 §8.4).",
+  "exciter": {"type": "noise_burst", "hardness": 0.45, "color": 0.3, "level": 1.0, "noisiness": 0.6},
+  "body": {
+    "mode_count": 12,
+    "inharmonicity": 0.42,
+    "brightness": 0.3,
+    "t60_base_s": 0.6,
+    "damping_slope": 0.7,
+    "irregularity": 0.3,
+    "position": 0.18
+  },
+  "velocity": {"to_level": 0.95, "to_brightness": 0.5, "to_hardness": 0.45},
+  "release": {"mode": "damped", "damp_factor": 3.0},
+  "radiation": {"stereo_spread": 0.3, "gain": 0.65}
+}
