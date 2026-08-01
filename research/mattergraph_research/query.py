@@ -27,6 +27,20 @@ CONSTRAINT_HINTS: list[tuple[tuple[str, ...], str, str, float]] = [
     (("bright", "shimmering", "sparkling", "brilliant", "icy"), "centroid_hz", ">", 1300.0),
 ]
 
+# Percussiveness axis: calibrated against NSynth human labels, AUC 0.995
+# (exp0/axis_calibration.json). Blind human eval confirmed the need: a friction
+# skin topped "glass chime" and was rejected by ear. Strike-words demand
+# percussive skins; sustain-words demand the opposite.
+PERCUSSIVE_POS = ["a percussive plucked or struck sound with a sharp attack",
+                  "a hit with a hard transient"]
+PERCUSSIVE_NEG = ["a smooth sustained tone with a soft slow attack",
+                  "a flowing continuous sound"]
+STRIKE_WORDS = ("percussion", "percussive", "struck", "strike", "hit", "knock",
+                "chime", "click", "pluck", "plucked", "mallet", "drum", "thump",
+                "tap", "staccato", "marimba", "xylophone", "bell")
+SUSTAIN_WORDS = ("bowed", "bowing", "drone", "scrape", "scraped", "scraping",
+                 "sustained", "pad", "bow", "friction")
+
 
 def prompt_constraints(prompt: str) -> list[tuple[str, str, float]]:
     words = set(prompt.lower().replace(",", " ").split())
@@ -49,6 +63,26 @@ def search_skins(atlas: Atlas, embedder: ClapEmbedder, prompt: str,
     for sid, s in zip(skin_ids, sims):
         if s > best.get(sid, -2.0):
             best[sid] = float(s)
+
+    # Gesture gating via the calibrated percussiveness axis.
+    words = set(prompt.lower().replace(",", " ").split())
+    wants_strike = bool(words & set(STRIKE_WORDS))
+    wants_sustain = bool(words & set(SUSTAIN_WORDS))
+    if wants_strike != wants_sustain:  # unambiguous gesture request
+        axis = (embedder.embed_text(PERCUSSIVE_POS).mean(axis=0)
+                - embedder.embed_text(PERCUSSIVE_NEG).mean(axis=0))
+        axis_sims = mat @ axis
+        skin_axis: dict[str, float] = {}
+        for sid, a in zip(skin_ids, axis_sims):
+            if a > skin_axis.get(sid, -2.0):
+                skin_axis[sid] = float(a)
+        cut = float(np.median(list(skin_axis.values())))
+        keep = {sid for sid, a in skin_axis.items()
+                if (a >= cut) == wants_strike}
+        gated = {sid: s for sid, s in best.items() if sid in keep}
+        if gated:  # never let the gate empty the pool silently
+            best = gated
+
     ranked = sorted(best.items(), key=lambda kv: -kv[1])[:shortlist]
 
     feats = atlas.skin_features()
