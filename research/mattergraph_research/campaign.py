@@ -21,7 +21,9 @@ from .render import render_many
 
 REPO = Path(__file__).resolve().parents[2]
 PROBES = [REPO / "fixtures/probes/diag_strike.clipspec.json",
-          REPO / "fixtures/probes/diag_arp3.clipspec.json"]
+          REPO / "fixtures/probes/diag_arp3.clipspec.json",
+          REPO / "fixtures/probes/diag_bass.clipspec.json",
+          REPO / "fixtures/probes/diag_sustain.clipspec.json"]
 
 
 def main() -> None:

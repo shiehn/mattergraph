@@ -77,14 +77,19 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
         s.exciter.type = ExciterType::noise_burst;
       } else if (type == "impulse") {
         s.exciter.type = ExciterType::impulse;
+      } else if (type == "friction") {
+        s.exciter.type = ExciterType::friction;
       } else {
-        fail("SoundSkin: exciter.type must be 'noise_burst' or 'impulse'");
+        fail("SoundSkin: exciter.type must be 'noise_burst', 'impulse', or 'friction'");
       }
     }
     s.exciter.hardness = numInRange(e, "hardness", 0, 1, s.exciter.hardness, "exciter");
     s.exciter.color = numInRange(e, "color", 0, 1, s.exciter.color, "exciter");
     s.exciter.level = numInRange(e, "level", 0, 1, s.exciter.level, "exciter");
     s.exciter.noisiness = numInRange(e, "noisiness", 0, 1, s.exciter.noisiness, "exciter");
+    s.exciter.roughness = numInRange(e, "roughness", 0, 1, s.exciter.roughness, "exciter");
+    s.exciter.grit_rate_hz =
+        numInRange(e, "grit_rate_hz", 5, 400, s.exciter.grit_rate_hz, "exciter");
   }
 
   if (auto it = root.find("body"); it != root.end()) {

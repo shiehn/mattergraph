@@ -1,0 +1,55 @@
+{
+ "model": "laion/clap-htsat-unfused",
+ "dataset": "nsynth-test",
+ "n_per_side": 48,
+ "axes": [
+  {
+   "axis": "brightness",
+   "n_pos": 48,
+   "n_neg": 48,
+   "auc": 1.0,
+   "polarity": "+",
+   "verdict": "strong",
+   "pos_prompts": [
+    "a bright sharp tone with strong high frequencies",
+    "a brilliant sparkling sound"
+   ],
+   "neg_prompts": [
+    "a dark mellow tone with no high frequencies",
+    "a dull muffled bassy sound"
+   ]
+  },
+  {
+   "axis": "percussiveness",
+   "n_pos": 48,
+   "n_neg": 48,
+   "auc": 0.995,
+   "polarity": "+",
+   "verdict": "strong",
+   "pos_prompts": [
+    "a percussive plucked or struck sound with a sharp attack",
+    "a hit with a hard transient"
+   ],
+   "neg_prompts": [
+    "a smooth sustained tone with a soft slow attack",
+    "a flowing continuous sound"
+   ]
+  },
+  {
+   "axis": "decay_speed",
+   "n_pos": 48,
+   "n_neg": 48,
+   "auc": 0.493,
+   "polarity": "REVERSED",
+   "verdict": "unreliable",
+   "pos_prompts": [
+    "a short sound that decays immediately",
+    "a quick staccato note that stops"
+   ],
+   "neg_prompts": [
+    "a long ringing sustained release",
+    "a note that fades out very slowly"
+   ]
+  }
+ ]
+}

@@ -113,6 +113,33 @@ TEST_CASE("energy decays: tail is quieter than attack for a damped skin") {
   CHECK(tail < attack * 0.1);
 }
 
+TEST_CASE("friction exciter sustains while the note is held, then decays") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_sustain.clipspec.json"), 48000);
+  const auto skin = loadSoundSkinFromFile(skinPath("bowed_glass.json"));
+  const RenderResult r = renderTimeline(tl, skin, 11);
+  REQUIRE(r.audit.passed);
+  // Note: C3 held 4 s (6 qn at 90 bpm). Early vs late held windows must both
+  // carry energy of the same order — the gesture sustains, unlike a strike.
+  const double early = windowRms(r.interleaved, 24000, 48000);   // 0.5-1.0 s
+  const double late = windowRms(r.interleaved, 120000, 144000);  // 2.5-3.0 s
+  REQUIRE(early > 1e-4);
+  REQUIRE(late > 1e-4);
+  CHECK(late > early * 0.25);   // within ~12 dB: sustained, not decayed away
+  // After note-off (4 s), the tail must actually decay.
+  const std::int64_t off = tl.notes()[0].off_sample;
+  const double tail = windowRms(r.interleaved, off + 48000,
+                                std::min<std::int64_t>(off + 72000, r.stats.frames));
+  CHECK(tail < late * 0.3);
+}
+
+TEST_CASE("friction renders are deterministic") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_sustain.clipspec.json"), 48000);
+  const auto skin = loadSoundSkinFromFile(skinPath("scraped_metal.json"));
+  const RenderResult a = renderTimeline(tl, skin, 5);
+  const RenderResult b = renderTimeline(tl, skin, 5);
+  REQUIRE(a.interleaved == b.interleaved);
+}
+
 TEST_CASE("normalize option hits the requested peak") {
   const auto tl = buildTimelineFromClipSpecFile(fixture("probes/bass_groove.clipspec.json"), 48000);
   const auto skin = loadSoundSkinFromFile(skinPath("metal_bell.json"));

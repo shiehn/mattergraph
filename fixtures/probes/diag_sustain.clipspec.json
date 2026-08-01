@@ -1,0 +1,9 @@
+{
+  "schema_version": "0.1.0",
+  "name": "diag_sustain",
+  "description": "Diagnostic probe: single C3 held four seconds. Sustained-gesture snapshot for friction-type skins; percussive skins simply decay through it.",
+  "bpm": 90,
+  "notes": [
+    {"pitch": 48, "start_qn": 0.0, "dur_qn": 6.0, "vel": 96, "chan": 0}
+  ]
+}

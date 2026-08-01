@@ -110,6 +110,61 @@ ModalVoice::ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
     }
   }
 
+  if (skin.exciter.type == skin::ExciterType::friction) {
+    // --- Sustained friction excitation: the first non-strike gesture. ---
+    // Colored noise drives the body for the note's whole duration, amplitude-
+    // shaped by a stick-slip grain train. Normalized to unit RMS (power), not
+    // total energy — a longer bow stroke must not get quieter (plan §3.5:
+    // loudness is a function of velocity, not duration or noise luck).
+    constexpr double kMaxDriveSeconds = 30.0;
+    const auto drive_n = static_cast<std::size_t>(std::min(
+        static_cast<double>(off_sample_ - on_sample_), kMaxDriveSeconds * sr));
+    burst_.assign(std::max<std::size_t>(drive_n, 2), 0.0);
+
+    Rng noise(deriveStream(render_seed,
+                           0x46726963ULL ^ static_cast<std::uint64_t>(note.source_index)));
+    const double lp_a = mix(0.03, 0.9, std::pow(color_v, 1.5));
+    const double attack_s = mix(0.25, 0.01, hardness_v);
+    const auto attack_n = std::max<std::size_t>(
+        static_cast<std::size_t>(attack_s * sr), 1);
+    const double depth = 0.85 * skin.exciter.roughness;
+    double lp = 0.0;
+    double phase = 0.0;
+    double walk = 0.0;
+    for (std::size_t n = 0; n < burst_.size(); ++n) {
+      lp += lp_a * (noise.bipolar() - lp);
+      walk = std::clamp(walk + 0.002 * noise.bipolar(), -1.0, 1.0);
+      phase += skin.exciter.grit_rate_hz * (1.0 + 0.7 * skin.exciter.roughness * walk) / sr;
+      phase -= std::floor(phase);
+      const double grain = std::pow(0.5 * (1.0 - std::cos(2.0 * std::numbers::pi * phase)), 1.5);
+      const double env = n < attack_n
+                             ? 0.5 * (1.0 - std::cos(std::numbers::pi *
+                                                     static_cast<double>(n) /
+                                                     static_cast<double>(attack_n)))
+                             : 1.0;
+      burst_[n] = lp * env * ((1.0 - depth) + depth * grain);
+    }
+    double sum_sq = 0.0;
+    for (double s : burst_) {
+      sum_sq += s * s;
+    }
+    const double rms = std::sqrt(sum_sq / static_cast<double>(burst_.size()));
+    // Steady-state amplitude of a continuously driven resonator grows with its
+    // decay time (∝ τ), so the drive compensates by 1/t60 — otherwise long-
+    // ringing bodies clip and short ones whisper. Constant calibrated so
+    // anchor-class bodies peak around -7 dBFS.
+    const double drive = 0.04 * energy /
+                         ((0.3 + skin.body.t60_base_s) * std::max(rms, 1e-9));
+    for (double& s : burst_) {
+      s *= drive;
+    }
+
+    const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
+    end_sample_ = off_sample_ + static_cast<std::int64_t>(tail_s * sr) + 1;
+    gain_ = skin.radiation.gain;
+    return;
+  }
+
   // --- Exciter: deterministic pulse core + noise texture. ---
   // Loudness must be a function of velocity, not of noise luck (plan §3.5:
   // randomness changes microtexture only). The pulse carries the energy; the

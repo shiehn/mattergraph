@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1.0",
+  "name": "bowed_glass",
+  "skin_seed": 505,
+  "exciter": {"type": "friction", "hardness": 0.25, "color": 0.7, "level": 0.85,
+              "roughness": 0.3, "grit_rate_hz": 60},
+  "body": {
+    "mode_count": 18,
+    "inharmonicity": 0.72,
+    "brightness": 0.6,
+    "t60_base_s": 2.0,
+    "damping_slope": 0.5,
+    "irregularity": 0.15,
+    "position": 0.4
+  },
+  "velocity": {"to_level": 0.8, "to_brightness": 0.45, "to_hardness": 0.4},
+  "release": {"mode": "natural", "damp_factor": 1.0},
+  "radiation": {"stereo_spread": 0.6, "gain": 0.5}
+}

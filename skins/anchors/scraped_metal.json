@@ -1,0 +1,19 @@
+{
+  "schema_version": "0.1.0",
+  "name": "scraped_metal",
+  "skin_seed": 606,
+  "exciter": {"type": "friction", "hardness": 0.7, "color": 0.85, "level": 0.9,
+              "roughness": 0.9, "grit_rate_hz": 170},
+  "body": {
+    "mode_count": 26,
+    "inharmonicity": 0.88,
+    "brightness": 0.6,
+    "t60_base_s": 3.0,
+    "damping_slope": 0.4,
+    "irregularity": 0.3,
+    "position": 0.22
+  },
+  "velocity": {"to_level": 0.85, "to_brightness": 0.5, "to_hardness": 0.4},
+  "release": {"mode": "damped", "damp_factor": 4.0},
+  "radiation": {"stereo_spread": 0.7, "gain": 0.45}
+}

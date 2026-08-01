@@ -14,7 +14,7 @@ namespace mattergraph::skin {
 // This is the plan's SoundSkin (§2.1) at its smallest viable scope: genome
 // macros + velocity mappings + release behavior + radiation + provenance seed.
 
-enum class ExciterType { noise_burst, impulse };
+enum class ExciterType { noise_burst, impulse, friction };
 enum class ReleaseMode { natural, damped };
 
 struct SoundSkin {
@@ -30,6 +30,9 @@ struct SoundSkin {
                             // The pulse core is deterministic so that loudness
                             // is a function of velocity, not of noise luck
                             // (randomness boundary, plan §3.5).
+    // friction-type only: sustained excitation for the note's full duration.
+    double roughness{0.5};      // 0..1 stick-slip grit depth
+    double grit_rate_hz{90.0};  // 5..400 nominal slip-grain rate
   } exciter;
 
   struct Body {
