@@ -53,12 +53,12 @@ RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
   result.audit.dropped_voices =
       static_cast<int>(notes.size() - voices.size());
   for (const VoiceTrace& t : result.audit.voices) {
-    result.audit.max_on_error_samples =
-        std::max(result.audit.max_on_error_samples,
-                 std::llabs(t.rendered_on_sample - t.scheduled_on_sample));
-    result.audit.max_off_error_samples =
-        std::max(result.audit.max_off_error_samples,
-                 std::llabs(t.rendered_release_sample - t.scheduled_off_sample));
+    result.audit.max_on_error_samples = std::max<std::int64_t>(
+        result.audit.max_on_error_samples,
+        std::llabs(t.rendered_on_sample - t.scheduled_on_sample));
+    result.audit.max_off_error_samples = std::max<std::int64_t>(
+        result.audit.max_off_error_samples,
+        std::llabs(t.rendered_release_sample - t.scheduled_off_sample));
   }
   result.audit.passed = result.audit.event_count_input ==
                             result.audit.event_count_rendered &&

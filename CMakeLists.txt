@@ -15,6 +15,13 @@ FetchContent_Declare(Catch2
   GIT_TAG v3.7.1)
 FetchContent_MakeAvailable(nlohmann_json Catch2)
 
+# Shared warning policy. GCC 13's -Wdangling-reference is disabled: it false-
+# positives on functions returning references tied to their arguments.
+add_library(mg-warnings INTERFACE)
+target_compile_options(mg-warnings INTERFACE
+  -Wall -Wextra -Wpedantic -Werror
+  $<$<CXX_COMPILER_ID:GNU>:-Wno-dangling-reference>)
+
 add_library(mattergraph-core
   engine/src/midi/clipspec.cpp
   engine/src/midi/smf.cpp
@@ -23,21 +30,20 @@ add_library(mattergraph-core
   engine/src/render/renderer.cpp
   engine/src/render/wav.cpp)
 target_include_directories(mattergraph-core PUBLIC engine/include)
-target_link_libraries(mattergraph-core PRIVATE nlohmann_json::nlohmann_json)
-target_compile_options(mattergraph-core PRIVATE -Wall -Wextra -Wpedantic -Werror)
+target_link_libraries(mattergraph-core PRIVATE nlohmann_json::nlohmann_json
+  mg-warnings)
 
 add_executable(mattergraph-render renderer/app/main.cpp)
 target_link_libraries(mattergraph-render PRIVATE mattergraph-core
-  nlohmann_json::nlohmann_json)
-target_compile_options(mattergraph-render PRIVATE -Wall -Wextra -Wpedantic -Werror)
+  nlohmann_json::nlohmann_json mg-warnings)
 
 enable_testing()
 add_executable(mg_tests
   tests/test_clipspec_timeline.cpp
   tests/test_smf_timeline.cpp
   tests/test_modal_render.cpp)
-target_link_libraries(mg_tests PRIVATE mattergraph-core Catch2::Catch2WithMain)
-target_compile_options(mg_tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
+target_link_libraries(mg_tests PRIVATE mattergraph-core Catch2::Catch2WithMain
+  mg-warnings)
 target_compile_definitions(mg_tests PRIVATE
   MG_FIXTURES_DIR="${CMAKE_CURRENT_SOURCE_DIR}/fixtures"
   MG_SKINS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/skins")
