@@ -129,6 +129,55 @@ def render_wav(skin_id: str = "", anchor: str = "", probe: str = "pluck_arpeggio
     return Response(buf.getvalue(), media_type="audio/wav")
 
 
+GATE_PROMPTS = [
+    "a delicate glass chime with a clear ring",
+    "a deep drum thump",
+    "a metal bell with a long sustained ring",
+    "a warm wooden knock, like a marimba",
+    "short staccato click that stops immediately",
+    "brilliant shimmering high-frequency strike",
+    "resonant singing bowl",
+    "a tiny music box note",
+]
+
+
+@app.get("/api/gate_prompts")
+def gate_prompts() -> list[str]:
+    return GATE_PROMPTS
+
+
+class GateReq(BaseModel):
+    prompt: str
+    skin_id: str
+    verdict: str  # "yes" | "no"
+
+
+@app.post("/api/gate")
+def gate(req: GateReq) -> dict:
+    import time as _time
+    path = REPO / "runs/gate_results.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a") as f:
+        f.write(json.dumps({"t": _time.time(), "prompt": req.prompt,
+                            "skin_id": req.skin_id, "verdict": req.verdict}) + "\n")
+    return gate_summary()
+
+
+@app.get("/api/gate_summary")
+def gate_summary() -> dict:
+    path = REPO / "runs/gate_results.jsonl"
+    if not path.exists():
+        return {"yes": 0, "no": 0, "total": 0, "pass_rate": 0.0}
+    latest: dict[str, str] = {}
+    for line in path.read_text().splitlines():
+        row = json.loads(line)
+        latest[row["prompt"]] = row["verdict"]  # last verdict per prompt wins
+    yes = sum(1 for v in latest.values() if v == "yes")
+    total = len(latest)
+    return {"yes": yes, "no": total - yes, "total": total,
+            "pass_rate": round(yes / total, 3) if total else 0.0}
+
+
 class CurateReq(BaseModel):
     skin_id: str
     name: str

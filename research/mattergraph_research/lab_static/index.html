@@ -48,6 +48,29 @@
     <span class="meta">anchors:</span><span id="anchors" class="row"></span>
   </div>
   <div id="status"></div>
+
+  <div class="card" id="gatecard">
+    <div class="row" style="justify-content:space-between">
+      <b>Gate test</b>
+      <span class="meta" id="gatesummary"></span>
+      <button class="primary" id="gatestart">Start gate test</button>
+    </div>
+    <div id="gatebody" style="display:none">
+      <p id="gateprompt" style="font-size:18px;margin:10px 0 4px"></p>
+      <div class="meta" id="gatemeta"></div>
+      <div id="gateplayer"></div>
+      <div class="row" style="margin-top:10px">
+        <button class="primary" onclick="gateVote('yes')">✓ plausibly yes</button>
+        <button onclick="gateVote('no')">✗ no</button>
+        <button onclick="gateNext()">skip</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <input id="gatecustom" type="text" placeholder="your own prompt…" style="flex:1">
+        <button onclick="gateCustom()">test it</button>
+      </div>
+    </div>
+  </div>
+
   <div id="results"></div>
 </main>
 <script>
@@ -114,9 +137,66 @@ window.curate = async (skinId, i) => {
   init();
 };
 
+// --- Gate test: judge only the top-1 per prompt, yes/no ---
+let gateQueue = [], gateCurrent = null;
+
+async function gateSummary() {
+  const s = await (await fetch("/api/gate_summary")).json();
+  $("gatesummary").textContent = s.total
+    ? `${s.yes}/${s.total} yes (${Math.round(s.pass_rate * 100)}% — gate needs ≥50%)` : "";
+}
+
+async function gateShow(prompt) {
+  $("gateprompt").textContent = "“" + prompt + "”";
+  $("gatemeta").textContent = "retrieving top-1…";
+  $("gateplayer").innerHTML = "";
+  const hits = await (await fetch("/api/search", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt, topk: 1 }),
+  })).json();
+  gateCurrent = { prompt, skin_id: hits[0].skin_id };
+  $("gatemeta").textContent =
+    `top-1: ${hits[0].skin_id} · cos ${hits[0].cos.toFixed(3)} · t60 ${hits[0].decay_t60_s}s`;
+  $("gateplayer").innerHTML =
+    `<audio controls autoplay src="${wavUrl({ skin_id: hits[0].skin_id })}"></audio>`;
+}
+
+window.gateNext = async () => {
+  if (gateQueue.length === 0) {
+    $("gateprompt").textContent = "Preset prompts done — add your own below, or you're finished.";
+    $("gatemeta").textContent = ""; $("gateplayer").innerHTML = "";
+    gateCurrent = null;
+    return;
+  }
+  await gateShow(gateQueue.shift());
+};
+
+window.gateVote = async (verdict) => {
+  if (!gateCurrent) return;
+  await fetch("/api/gate", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...gateCurrent, verdict }),
+  });
+  await gateSummary();
+  gateNext();
+};
+
+window.gateCustom = async () => {
+  const p = $("gatecustom").value.trim();
+  if (p) { $("gatecustom").value = ""; await gateShow(p); }
+};
+
+$("gatestart").onclick = async () => {
+  gateQueue = await (await fetch("/api/gate_prompts")).json();
+  $("gatebody").style.display = "block";
+  await gateSummary();
+  gateNext();
+};
+
 $("go").onclick = search;
 $("prompt").addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
 init();
+gateSummary();
 </script>
 </body>
 </html>
