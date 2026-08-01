@@ -41,7 +41,9 @@ CREATE TABLE IF NOT EXISTS skin_embeddings (
 
 class Atlas:
     def __init__(self, path: Path) -> None:
-        self.conn = sqlite3.connect(path)
+        # check_same_thread=False: the lab serves sync endpoints from a thread
+        # pool; access is effectively single-user and writes are serialized.
+        self.conn = sqlite3.connect(path, check_same_thread=False)
         self.conn.executescript(SCHEMA)
 
     def add_skin(self, skin_id: str, name: str, genome_json: str) -> None:

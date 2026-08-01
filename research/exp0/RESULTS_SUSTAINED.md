@@ -46,3 +46,35 @@ organ-adjacent, implicating the synthesis rather than the evaluator.
 
 All semantic-axis scoring (SoundSpec identity fields included) uses **contrastive prompt
 pairs with empirically verified polarity**, recorded per axis in the evaluator config.
+
+---
+
+## Addendum (same day): NSynth real-sample test — confound RESOLVED
+
+`exp0s_nsynth.py` scored CLAP family identification on real NSynth test-split notes.
+
+**First pass (naive taxonomy): macro 0.365 (2.2× chance)** — but the "failures" were
+substantially artifacts: the prompt set included `synth_lead`, which has **zero examples
+in the test split** (pure distractor); NSynth flutes are 69% *synthetic* and organs 100%
+*electronic*, so "electronic synth" answers were semantically defensible.
+
+**Refined pass (source-filtered, honest prompts): macro 0.500 (3.0× chance).**
+Per-family: brass **1.00**, string **0.94**, organ **0.88** (was 0.00 — fixed *entirely*
+by prompting "electric organ" instead of "church organ"), reed 0.19 (drifts to brass —
+sax/clarinet vs brass is a genuinely adjacent timbre pair), vocal 0.00 (n=7, reads as
+organ — steady sung vowels vs pipe organ, a classic acoustic adjacency), flute n=0
+(filter artifact: acoustic flutes need relaxed velocity/pitch constraints; TODO).
+
+**Resolved verdict for the sustain track:**
+1. The Exp 0-S archetype failure was **substantially stimulus- and taxonomy-limited**,
+   not a blanket evaluator failure — CLAP hears real sustained timbre well at the
+   coarse-family level.
+2. CLAP is **usable for sustained-material search** with the same discipline the
+   percussion loop already adopted: contrastive pairs, verified polarity, paraphrase
+   sets — plus acoustic-feature co-scoring for adjacent-timbre pairs (reed/brass,
+   vocal/organ) where CLAP alone is unreliable.
+3. Prompt wording is part of the evaluator and must be validated per family
+   (the organ 0.00 → 0.88 swing came from two words).
+4. Sustain-track step 0 status: **conditionally passed** — search may proceed once the
+   driven-excitation prototype produces stimuli, scored coarse-family + contrastive
+   axes; pod rental unblocks when local campaign throughput becomes the bottleneck.

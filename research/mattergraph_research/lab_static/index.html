@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>mattergraph-lab</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1a1a1a; --bg: #fafafa; --card: #fff;
+          --line: #ddd; --accent: #4a5ac8; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #eaeaea; --bg: #141416; --card: #1e1e22; --line: #333; --accent: #8a97ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.5 system-ui, sans-serif; color: var(--fg);
+         background: var(--bg); }
+  main { max-width: 880px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size: 20px; } h1 small { font-weight: 400; opacity: .6; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  input[type=text] { flex: 1; min-width: 240px; padding: 10px 12px; font-size: 16px;
+    border: 1px solid var(--line); border-radius: 8px; background: var(--card);
+    color: var(--fg); }
+  button { padding: 9px 14px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--card); color: var(--fg); cursor: pointer; font-size: 14px; }
+  button.primary { background: var(--accent); color: #fff; border-color: transparent; }
+  select { padding: 8px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--card); color: var(--fg); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+    padding: 12px 14px; margin-top: 10px; }
+  .meta { opacity: .65; font-size: 13px; }
+  audio { width: 100%; margin-top: 8px; }
+  #status { margin-top: 10px; opacity: .7; font-size: 13px; }
+  .tag { font-size: 12px; padding: 2px 8px; border: 1px solid var(--line);
+    border-radius: 999px; opacity: .8; }
+</style>
+</head>
+<body>
+<main>
+  <h1>mattergraph-lab <small>— text picks the sound; MIDI is exact</small></h1>
+
+  <div class="row">
+    <input id="prompt" type="text" placeholder='e.g. "warm glass percussion with a soft wooden attack"'
+           value="warm glass percussion with a soft wooden attack">
+    <button class="primary" id="go">Search</button>
+  </div>
+  <div class="row" style="margin-top:8px">
+    <label>probe <select id="probe"></select></label>
+    <label>seed <input id="seed" type="text" value="7" size="6" style="min-width:70px;flex:0"></label>
+    <span class="meta">anchors:</span><span id="anchors" class="row"></span>
+  </div>
+  <div id="status"></div>
+  <div id="results"></div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const status = (m) => $("status").textContent = m;
+
+async function init() {
+  const probes = await (await fetch("/api/probes")).json();
+  $("probe").innerHTML = probes.map(p =>
+    `<option ${p === "pluck_arpeggio" ? "selected" : ""}>${p}</option>`).join("");
+  const anchors = await (await fetch("/api/anchors")).json();
+  $("anchors").innerHTML = anchors.map(a =>
+    `<button class="tag" onclick="playAnchor('${a.name}')">${a.name}</button>`).join("");
+}
+
+function wavUrl(params) {
+  const q = new URLSearchParams({ probe: $("probe").value, seed: $("seed").value, ...params });
+  return "/api/render_wav?" + q.toString();
+}
+
+window.playAnchor = (name) => {
+  status("rendering anchor " + name + " …");
+  const a = new Audio(wavUrl({ anchor: name }));
+  a.onplay = () => status("playing anchor " + name);
+  a.play();
+};
+
+async function search() {
+  status("searching…");
+  const res = await fetch("/api/search", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt: $("prompt").value, topk: 6 }),
+  });
+  if (!res.ok) { status("search failed: " + await res.text()); return; }
+  const hits = await res.json();
+  status(hits.length + " candidates — render to audition");
+  $("results").innerHTML = hits.map((h, i) => `
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div><b>#${i + 1}</b> <span class="meta">${h.skin_id}</span>
+          <span class="meta">cos ${h.cos.toFixed(3)} · t60 ${h.decay_t60_s}s ·
+          centroid ${h.centroid_hz} Hz</span></div>
+        <div class="row">
+          <button onclick="renderHit('${h.skin_id}', ${i})">render</button>
+          <input id="name${i}" type="text" placeholder="save as…" size="14">
+          <button onclick="curate('${h.skin_id}', ${i})">keep</button>
+        </div>
+      </div>
+      <div id="player${i}"></div>
+    </div>`).join("");
+}
+
+window.renderHit = (skinId, i) => {
+  $("player" + i).innerHTML = `<audio controls autoplay src="${wavUrl({ skin_id: skinId })}"></audio>`;
+};
+
+window.curate = async (skinId, i) => {
+  const name = $("name" + i).value || skinId;
+  const res = await fetch("/api/curate", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skin_id: skinId, name, tags: $("prompt").value }),
+  });
+  status(res.ok ? "saved: " + (await res.json()).saved : "save failed");
+  init();
+};
+
+$("go").onclick = search;
+$("prompt").addEventListener("keydown", (e) => { if (e.key === "Enter") search(); });
+init();
+</script>
+</body>
+</html>

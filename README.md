@@ -46,9 +46,17 @@ Anchor skins: `skins/anchors/{glass, wood_bar, metal_bell, membrane}.json`.
 - [x] SMF ingestion (formats 0/1, exact 128-bit tick arithmetic — zero tempo-map drift by construction)
 - [x] Probe phrases: bass groove, velocity ladder, pluck arpeggio, pad chords, range sweep
 - [x] CI: Linux + macOS build/test + ASan/UBSan job
+- [x] Research loop v0: Sobol → render → gates → features → CLAP → atlas → retrieval
+      (Phase-2 gate PASSED: 2.42× over random, 30/30 positive semantic lift — see docs/results/)
+- [x] mattergraph-lab v0: `python -m mattergraph_research.lab --atlas runs/c0.sqlite`
+      → prompt / audition / A-B / save-to-`skins/curated/` at http://127.0.0.1:8321
+- [x] Behavior contracts v0: velocity→RMS median rho +0.98 across atlas;
+      velocity→brightness weak (mapping genes fixed, not searched — next campaign)
+- [x] Sustain evaluator gates: Exp 0-S + NSynth real-sample test
+      (conditionally passed; contrastive-pairs-only scoring adopted project-wide)
 - [ ] Expressive-lead probe (needs pitch bend/pressure in the timeline — reserved)
-- [ ] Research loop v0 (Sobol → render → gates → CLAP/features → atlas)
-- [ ] More anchor skins via lab curation
+- [ ] Velocity-mapping genes in the genome + campaign v1
+- [ ] Anchor curation session (human ears required)
 
 ## License
 

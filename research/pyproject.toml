@@ -9,6 +9,9 @@ dependencies = [
   "soundfile>=0.12",
   "torch>=2.2",
   "transformers>=4.49,<5",
+  "fastapi>=0.110",
+  "uvicorn>=0.29",
+  "pydantic>=2",
 ]
 
 [build-system]
