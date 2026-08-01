@@ -84,6 +84,33 @@ class Genome:
         payload = json.dumps(asdict(self), sort_keys=True).encode()
         return "g_" + hashlib.sha256(payload).hexdigest()[:16]
 
+    @staticmethod
+    def from_skin_json(skin_json: str) -> "Genome":
+        s = json.loads(skin_json)
+        e, b, v, r, rad = (s["exciter"], s["body"], s.get("velocity", {}),
+                           s.get("release", {}), s.get("radiation", {}))
+        return Genome(
+            mode_count=int(b["mode_count"]),
+            inharmonicity=float(b["inharmonicity"]),
+            brightness=float(b["brightness"]),
+            t60_base_s=float(b["t60_base_s"]),
+            damping_slope=float(b["damping_slope"]),
+            irregularity=float(b["irregularity"]),
+            position=float(b["position"]),
+            hardness=float(e["hardness"]),
+            color=float(e["color"]),
+            noisiness=float(e.get("noisiness", 0.35)),
+            release_damp_factor=float(r.get("damp_factor", 6.0)),
+            stereo_spread=float(rad.get("stereo_spread", 0.5)),
+            skin_seed=int(s["skin_seed"]),
+            exciter_type=str(e.get("type", "noise_burst")),
+            to_level=float(v.get("to_level", 0.85)),
+            to_brightness=float(v.get("to_brightness", 0.4)),
+            to_hardness=float(v.get("to_hardness", 0.3)),
+            roughness=float(e.get("roughness", 0.5)),
+            grit_rate_hz=float(e.get("grit_rate_hz", 90.0)),
+        )
+
 
 # (name, low, high, log_scale)
 _CONTINUOUS = [
@@ -106,6 +133,30 @@ _CONTINUOUS = [
 ]
 _MODE_COUNT_RANGE = (4, 64)
 _FRICTION_FRACTION = 0.3
+
+
+def mutate(g: Genome, rng: np.random.Generator, mutation_rate: float = 0.35,
+           sigma_frac: float = 0.15) -> Genome:
+    """Gaussian mutation within bounds; occasional gesture flips and reseeds."""
+    values = asdict(g)
+    for name, lo, hi, log_scale in _CONTINUOUS:
+        if rng.random() >= mutation_rate:
+            continue
+        v = float(values[name])
+        if log_scale:
+            lv = np.log(v) + rng.normal(0.0, sigma_frac * (np.log(hi) - np.log(lo)))
+            values[name] = float(np.exp(np.clip(lv, np.log(lo), np.log(hi))))
+        else:
+            values[name] = float(np.clip(v + rng.normal(0.0, sigma_frac * (hi - lo)), lo, hi))
+    if rng.random() < mutation_rate:
+        lo_m, hi_m = _MODE_COUNT_RANGE
+        values["mode_count"] = int(np.clip(g.mode_count + rng.integers(-8, 9), lo_m, hi_m))
+    if rng.random() < 0.08:
+        values["exciter_type"] = ("friction" if g.exciter_type == "noise_burst"
+                                  else "noise_burst")
+    if rng.random() < 0.2:
+        values["skin_seed"] = int(rng.integers(0, 2**31))  # new irregularity realization
+    return Genome(**values)
 
 
 def sobol_genomes(n: int, base_seed: int = 0) -> list[Genome]:
