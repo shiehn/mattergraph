@@ -1,0 +1,9 @@
+{
+  "schema_version": "0.1.0",
+  "name": "diag_strike",
+  "description": "Diagnostic probe: single C4 strike at forte. Small on purpose — campaign renders use this for cheap per-genome timbre snapshots.",
+  "bpm": 110,
+  "notes": [
+    {"pitch": 60, "start_qn": 0.0, "dur_qn": 1.1, "vel": 104, "chan": 0}
+  ]
+}
