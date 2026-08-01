@@ -9,6 +9,10 @@
 namespace mattergraph::midi {
 namespace {
 
+// __extension__ keeps -Wpedantic quiet on GCC; 128 bits is what makes the
+// tick->sample numerator exact (see smf.h).
+__extension__ typedef __int128 int128;
+
 [[noreturn]] void fail(SmfErrc errc, const std::string& message) {
   throw SmfError(errc, message);
 }
@@ -96,12 +100,12 @@ class TickClock {
     std::stable_sort(tempi.begin(), tempi.end(), [](const TempoEvent& a, const TempoEvent& b) {
       return a.tick < b.tick || (a.tick == b.tick && a.order < b.order);
     });
-    __int128 n = 0;
+    int128 n = 0;
     std::uint64_t tick = 0;
     std::uint32_t usec = 500'000;  // spec default: 120 bpm
     segments_.push_back({0, 0, usec});
     for (const TempoEvent& t : tempi) {
-      n += static_cast<__int128>(t.tick - tick) * usec * sample_rate;
+      n += static_cast<int128>(t.tick - tick) * usec * sample_rate;
       tick = t.tick;
       usec = t.usec_per_qn;
       if (!segments_.empty() && segments_.back().tick == tick) {
@@ -122,8 +126,8 @@ class TickClock {
         break;
       }
     }
-    const __int128 n =
-        seg->n + static_cast<__int128>(tick - seg->tick) * seg->usec * sr_;
+    const int128 n =
+        seg->n + static_cast<int128>(tick - seg->tick) * seg->usec * sr_;
     return static_cast<std::int64_t>((n + d_ / 2) / d_);  // round half up
   }
 
@@ -134,7 +138,7 @@ class TickClock {
  private:
   struct Segment {
     std::uint64_t tick;
-    __int128 n;  // exact numerator of the segment start's sample position
+    int128 n;  // exact numerator of the segment start's sample position
     std::uint32_t usec;
   };
   std::vector<Segment> segments_;
