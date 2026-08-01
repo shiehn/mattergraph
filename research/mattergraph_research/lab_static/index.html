@@ -81,6 +81,7 @@ async function init() {
   const probes = await (await fetch("/api/probes")).json();
   $("probe").innerHTML = probes.map(p =>
     `<option ${p === "pluck_arpeggio" ? "selected" : ""}>${p}</option>`).join("");
+  $("probe").value = "pluck_arpeggio";  // defeat browser form-state restore
   const anchors = await (await fetch("/api/anchors")).json();
   $("anchors").innerHTML = anchors.map(a =>
     `<button class="tag" onclick="playAnchor('${a.name}')">${a.name}</button>`).join("");
@@ -156,9 +157,9 @@ async function gateShow(prompt) {
   })).json();
   gateCurrent = { prompt, skin_id: hits[0].skin_id };
   $("gatemeta").textContent =
-    `top-1: ${hits[0].skin_id} · cos ${hits[0].cos.toFixed(3)} · t60 ${hits[0].decay_t60_s}s`;
+    `top-1: ${hits[0].skin_id} · cos ${hits[0].cos.toFixed(3)} · t60 ${hits[0].decay_t60_s}s · probe: pluck_arpeggio`;
   $("gateplayer").innerHTML =
-    `<audio controls autoplay src="${wavUrl({ skin_id: hits[0].skin_id })}"></audio>`;
+    `<audio controls autoplay src="${wavUrl({ skin_id: hits[0].skin_id, probe: "pluck_arpeggio" })}"></audio>`;
 }
 
 window.gateNext = async () => {
