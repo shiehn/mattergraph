@@ -16,6 +16,11 @@ namespace mattergraph::skin {
 
 enum class ExciterType { noise_burst, impulse, friction, sample, periodic };
 enum class ReleaseMode { natural, damped };
+// Partial-frequency law of the body. "string": stiff-string stretch
+// r_k = k·sqrt(1+Bk²) (max stretch ≈ 1:2.3 — strings, bells-ish, plucks).
+// "bar": struck-bar law r_k ≈ k² (marimba ≈ 1:4:9.2) — unreachable by the
+// string law, which made wooden-bar prompts physically unanswerable.
+enum class RatioLaw { string, bar };
 
 struct SoundSkin {
   std::string name;
@@ -44,6 +49,7 @@ struct SoundSkin {
   } exciter;
 
   struct Body {
+    RatioLaw ratio_law{RatioLaw::string};
     int mode_count{16};        // 1..256 (pre-Nyquist pruning may reduce it)
     double inharmonicity{0.2}; // 0..1 -> stiff-string stretch B = inh^2 * 0.15
     double brightness{0.5};    // 0..1 amplitude tilt across partials

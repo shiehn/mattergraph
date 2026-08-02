@@ -1,18 +1,35 @@
 {
-  "schema_version": "0.1.0",
-  "name": "wood_bar",
-  "skin_seed": 202,
-  "exciter": {"type": "noise_burst", "hardness": 0.35, "color": 0.25, "level": 0.95, "noisiness": 0.3},
-  "body": {
-    "mode_count": 8,
-    "inharmonicity": 0.55,
-    "brightness": 0.35,
-    "t60_base_s": 0.32,
-    "damping_slope": 0.85,
-    "irregularity": 0.22,
-    "position": 0.3
-  },
-  "velocity": {"to_level": 0.9, "to_brightness": 0.45, "to_hardness": 0.5},
-  "release": {"mode": "natural", "damp_factor": 1.0},
-  "radiation": {"stereo_spread": 0.35, "gain": 0.6}
+ "schema_version": "0.1.0",
+ "name": "wood_bar",
+ "skin_seed": 202,
+ "exciter": {
+  "type": "noise_burst",
+  "hardness": 0.35,
+  "color": 0.25,
+  "level": 0.95,
+  "noisiness": 0.3
+ },
+ "body": {
+  "mode_count": 8,
+  "inharmonicity": 0.25,
+  "brightness": 0.35,
+  "t60_base_s": 0.38,
+  "damping_slope": 0.85,
+  "irregularity": 0.22,
+  "position": 0.3,
+  "ratio_law": "bar"
+ },
+ "velocity": {
+  "to_level": 0.9,
+  "to_brightness": 0.45,
+  "to_hardness": 0.5
+ },
+ "release": {
+  "mode": "natural",
+  "damp_factor": 1.0
+ },
+ "radiation": {
+  "stereo_spread": 0.35,
+  "gain": 0.6
+ }
 }

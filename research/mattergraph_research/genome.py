@@ -47,6 +47,7 @@ class Genome:
     drive: float = 0.3
     sample_file: str = ""
     sample_blend: float = 0.85
+    ratio_law: str = "string"  # "string" | "bar" (struck-bar partials, k^2)
 
     def skin_json(self, name: str) -> str:
         skin = {
@@ -68,6 +69,7 @@ class Genome:
                 **({"sample": self.sample_file} if self.sample_file else {}),
             },
             "body": {
+                "ratio_law": self.ratio_law,
                 "mode_count": self.mode_count,
                 "inharmonicity": round(self.inharmonicity, 6),
                 "brightness": round(self.brightness, 6),
@@ -126,6 +128,7 @@ class Genome:
             drive=float(e.get("drive", 0.3)),
             sample_file=str(e.get("sample", "")),
             sample_blend=float(e.get("sample_blend", 0.85)),
+            ratio_law=str(b.get("ratio_law", "string")),
         )
 
 
@@ -200,13 +203,15 @@ def mutate(g: Genome, rng: np.random.Generator, mutation_rate: float = 0.35,
             values["sample_file"] = bank[int(rng.integers(len(bank)))] if bank else ""
         if not values["sample_file"]:
             values["exciter_type"] = "noise_burst"
+    if rng.random() < 0.1:
+        values["ratio_law"] = "bar" if values.get("ratio_law", "string") == "string" else "string"
     if rng.random() < 0.2:
         values["skin_seed"] = int(rng.integers(0, 2**31))  # new irregularity realization
     return Genome(**values)
 
 
 def sobol_genomes(n: int, base_seed: int = 0) -> list[Genome]:
-    dims = len(_CONTINUOUS) + 3  # + mode_count + exciter_type + sample pick
+    dims = len(_CONTINUOUS) + 4  # + mode_count + exciter_type + sample pick + ratio_law
     sampler = qmc.Sobol(d=dims, scramble=True, seed=base_seed)
     unit = sampler.random(n)
     bank = exciter_bank()
@@ -221,10 +226,11 @@ def sobol_genomes(n: int, base_seed: int = 0) -> list[Genome]:
             else:
                 values[name] = lo + u * (hi - lo)
         lo_m, hi_m = _MODE_COUNT_RANGE
-        values["mode_count"] = int(round(lo_m + float(row[-3]) * (hi_m - lo_m)))
-        values["exciter_type"] = _pick_type(float(row[-2]), bank)
-        values["sample_file"] = (bank[int(float(row[-1]) * len(bank)) % len(bank)]
+        values["mode_count"] = int(round(lo_m + float(row[-4]) * (hi_m - lo_m)))
+        values["exciter_type"] = _pick_type(float(row[-3]), bank)
+        values["sample_file"] = (bank[int(float(row[-2]) * len(bank)) % len(bank)]
                                  if values["exciter_type"] == "sample" and bank else "")
+        values["ratio_law"] = "bar" if float(row[-1]) < 0.35 else "string"
         values["skin_seed"] = base_seed * 1_000_003 + i
         out.append(Genome(**values))  # type: ignore[arg-type]
     return out

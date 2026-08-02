@@ -94,7 +94,13 @@ ModalVoice::ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
     const double amp_jitter = 1.0 + skin.body.irregularity * 0.5 * jitter.bipolar();
     const double pan_jitter = jitter.bipolar();
 
-    const double ratio = kd * std::sqrt(1.0 + B * kd * kd) * freq_jitter;
+    // "bar" law: r_k ≈ k² with inharmonicity morphing toward the arch-tuned
+    // marimba set (2nd partial pulled below 4×); "string": stiff stretch.
+    const double base_ratio =
+        skin.body.ratio_law == skin::RatioLaw::bar
+            ? kd * kd * (1.0 - skin.body.inharmonicity * 0.12 * (kd - 1.0) / kd)
+            : kd * std::sqrt(1.0 + B * kd * kd);
+    const double ratio = base_ratio * freq_jitter;
     const double f = f0_ * ratio;
     if (f >= sr * kNyquistFraction) {
       continue;

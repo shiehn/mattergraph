@@ -57,7 +57,20 @@ VOCAB = [
     "a dark muffled thud", "bright sparkling percussion", "a hollow tube knock",
     "a bowed string drone", "scraped metal texture", "a harsh noisy scrape",
     "a soft sustained drone", "a breathy evolving texture",
+    "a fat synth bass note", "a warm synth lead tone",
 ]
+
+# Contrast prompts (anti-gaming, plan §12.5): nameability is the margin over
+# generic non-musical attractors, then PERCENTILE-normalized against the seed
+# corpus — the fixed /0.6 ceiling saturated qd0's elites at fitness 1.0.
+NEGATIVE_VOCAB = [
+    "silence", "faint white noise hiss", "a pure sine test tone beep",
+    "digital clipping and glitch artifacts",
+]
+
+
+def contrast_score(vec: np.ndarray, vocab_mat: np.ndarray, neg_mat: np.ndarray) -> float:
+    return float((vec @ vocab_mat.T).max() - (vec @ neg_mat.T).max())
 
 
 def cell_of(features: dict[str, float]) -> tuple[int, int, int]:
@@ -106,6 +119,7 @@ def main() -> None:
     embedder = ClapEmbedder()
     embedder.health_check()
     vocab_mat = embedder.embed_text(VOCAB)
+    neg_mat = embedder.embed_text(NEGATIVE_VOCAB)
 
     # Self-contained output atlas: copy the seed campaign in wholesale.
     args.out.parent.mkdir(parents=True, exist_ok=True)
@@ -136,11 +150,19 @@ def main() -> None:
         "SELECT skin_id, vel_rms_rho, vel_centroid_rho, ok FROM behavior").fetchall() if ok}
     render_ids, mat = atlas.render_matrix()
     name_by_skin: dict[str, float] = {}
-    sims = mat @ vocab_mat.T
-    for rid_skin, row in zip(render_ids, sims):
-        best = float(row.max())
-        if best > name_by_skin.get(rid_skin, -2.0):
-            name_by_skin[rid_skin] = best
+    pos_best = (mat @ vocab_mat.T).max(axis=1)
+    neg_best = (mat @ neg_mat.T).max(axis=1)
+    for rid_skin, c in zip(render_ids, pos_best - neg_best):
+        if float(c) > name_by_skin.get(rid_skin, -2.0):
+            name_by_skin[rid_skin] = float(c)
+    # Fixed percentile reference from the seed corpus: stable, no moving target.
+    name_ref = np.sort(np.array(list(name_by_skin.values())))
+
+    def name_pct(raw: float) -> float:
+        if len(name_ref) == 0:
+            return 0.5
+        return float(np.searchsorted(name_ref, raw) / len(name_ref))
+
     seeded = 0
     for (sid, gj) in atlas.conn.execute("SELECT id, genome_json FROM skins").fetchall():
         f = feats.get(sid)
@@ -151,7 +173,7 @@ def main() -> None:
         except (KeyError, ValueError, TypeError):
             continue  # anchors with non-genome extras still parse; malformed skip
         play = playability(*behavior[sid])
-        name = float(np.clip(name_by_skin[sid] / 0.6, 0, 1))
+        name = name_pct(name_by_skin[sid])
         fit = 0.5 * play + 0.5 * name
         if archive.place(cell_of(f), sid, fit):
             atlas.conn.execute("INSERT OR REPLACE INTO qd VALUES (?,?,?,?,?,?)",
@@ -212,8 +234,8 @@ def main() -> None:
             vecs = [embeds[k] for k in embeds if k[0] == i]
             if not vecs:
                 continue
-            name_raw = max(float((v @ vocab_mat.T).max()) for v in vecs)
-            name = float(np.clip(name_raw / 0.6, 0, 1))
+            name_raw = max(contrast_score(v, vocab_mat, neg_mat) for v in vecs)
+            name = name_pct(name_raw)
             play = playability(r_rms, r_cent)
             fit = 0.5 * play + 0.5 * name
             sid = g.content_id()

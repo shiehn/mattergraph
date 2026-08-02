@@ -114,6 +114,16 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
 
   if (auto it = root.find("body"); it != root.end()) {
     const json& b = *it;
+    if (auto rl = b.find("ratio_law"); rl != b.end()) {
+      const std::string law = rl->get<std::string>();
+      if (law == "string") {
+        s.body.ratio_law = RatioLaw::string;
+      } else if (law == "bar") {
+        s.body.ratio_law = RatioLaw::bar;
+      } else {
+        fail("SoundSkin: body.ratio_law must be 'string' or 'bar'");
+      }
+    }
     if (auto mc = b.find("mode_count"); mc != b.end()) {
       if (!mc->is_number_integer()) {
         fail("SoundSkin: body.mode_count must be an integer");

@@ -141,6 +141,48 @@ TEST_CASE("friction renders are deterministic") {
   REQUIRE(a.interleaved == b.interleaved);
 }
 
+TEST_CASE("bar ratio law places the bar partial family, string law cannot") {
+  // A bar body's second partial sits near 4x the fundamental (marimba family);
+  // the stiff-string law tops out near 2.3x. Verify via spectral peaks of a
+  // single C4 strike with few, long-ringing modes.
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_strike.clipspec.json"), 48000);
+  const auto skin = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "bar_test", "skin_seed": 4,
+    "exciter": {"type": "impulse"},
+    "body": {"ratio_law": "bar", "mode_count": 3, "inharmonicity": 0.0,
+             "irregularity": 0.0, "t60_base_s": 2.0, "brightness": 1.0,
+             "position": 0.3},
+    "release": {"mode": "natural"}})");
+  const RenderResult r = renderTimeline(tl, skin, 4);
+  // Spectral probe of the tail (attack excluded), clamped inside the buffer.
+  const std::size_t n0 = 24000;
+  const std::size_t n1 = std::min<std::size_t>(
+      72000, static_cast<std::size_t>(r.stats.frames));
+  REQUIRE(n1 > n0 + 24000);
+  std::vector<double> x(n1 - n0);
+  for (std::size_t n = n0; n < n1; ++n) {
+    x[n - n0] = static_cast<double>(r.interleaved[2 * n]) +
+                static_cast<double>(r.interleaved[2 * n + 1]);
+  }
+  // Goertzel probe at candidate partial frequencies of C4 (261.63 Hz).
+  auto power_at = [&](double f) {
+    const double w = 2.0 * 3.14159265358979 * f / 48000.0;
+    double s0 = 0, s1 = 0, s2 = 0;
+    for (double v : x) {
+      s0 = v + 2.0 * std::cos(w) * s1 - s2;
+      s2 = s1;
+      s1 = s0;
+    }
+    return s1 * s1 + s2 * s2 - 2.0 * std::cos(w) * s1 * s2;
+  };
+  const double f0 = 261.6255653005986;
+  const double p_fund = power_at(f0);
+  const double p_bar2 = power_at(4.0 * f0);    // bar's 2nd partial (k²)
+  const double p_string2 = power_at(2.0 * f0); // string's 2nd would sit ~2x
+  REQUIRE(p_fund > 0.0);
+  CHECK(p_bar2 > p_string2 * 10.0);  // energy lives at 4x, not 2x
+}
+
 TEST_CASE("wav reader roundtrips the writer's output") {
   namespace fs = std::filesystem;
   std::vector<float> tone(4800);
