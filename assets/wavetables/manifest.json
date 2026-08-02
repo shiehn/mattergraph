@@ -1,0 +1,362 @@
+[
+ {
+  "file": "basses-a9bc57df.wav",
+  "category": "basses",
+  "sha256": "a9bc57df04f879437db1e692ddedec0ffe0969ed7ea9cf84f9de3efd6a8874f5",
+  "prompt": "punchy 808 bass one shot, fast attack, controlled body, deep sub fundamental, dry, no loop",
+  "instrument_id": "basses-0200524d",
+  "root_midi": 48
+ },
+ {
+  "file": "basses-a3afd0d4.wav",
+  "category": "basses",
+  "sha256": "a3afd0d40b1ea9963dc456235232ef6afd33e59c72323ee63d3885832fe58c02",
+  "prompt": "glassy bass one shot, single note, memphis character, warm sub character, tape-saturated, no chord, no melody, no loop",
+  "instrument_id": "basses-058ed1c3",
+  "root_midi": 48
+ },
+ {
+  "file": "basses-d3dd27af.wav",
+  "category": "basses",
+  "sha256": "d3dd27af976c772c6a0f7c0e627cc01666955ee5042b943466209d54f53dddbd",
+  "prompt": "balearic bass one shot, smooth plucky mid bass, warm 90s vibe, dry, no chord, no loop",
+  "instrument_id": "basses-073716c3",
+  "root_midi": 48
+ },
+ {
+  "file": "reese-bass-a913f5bc.wav",
+  "category": "reese-bass",
+  "sha256": "a913f5bc5f4a9be276c02a3c7c0a6782dc1c3d2070173fd38d3ea638202979e7",
+  "prompt": "metallic reese bass one shot, single note, future bass character, tight punchy body, dry, no chord, no melody, no loop",
+  "instrument_id": "reese-bass-018d01fc",
+  "root_midi": 47
+ },
+ {
+  "file": "reese-bass-f4e7e66d.wav",
+  "category": "reese-bass",
+  "sha256": "f4e7e66dad37a77361e77940484e29f03a624708666c1165afcca9ea9ed0644d",
+  "prompt": "memphis reese bass one shot, single note, tight punchy body, controlled tail, tape-saturated, no chord, no melody, no loop",
+  "instrument_id": "reese-bass-0345840c",
+  "root_midi": 48
+ },
+ {
+  "file": "reese-bass-b8bc7405.wav",
+  "category": "reese-bass",
+  "sha256": "b8bc74053ca368e384c04e87a2fa06af30c3ee3c8c9459627055b7f0f1b93c3c",
+  "prompt": "big room hollow reese bass one shot, single note, warm sub character, long natural decay, dry, no chord, no melody, no loop",
+  "instrument_id": "reese-bass-05a58e19",
+  "root_midi": 48
+ },
+ {
+  "file": "808-bass-f9b91963.wav",
+  "category": "808-bass",
+  "sha256": "f9b91963e6d61f1eebb54d340ae97b9ccedad093278243e8d3674ab28af73616",
+  "prompt": "big room woody 808 sub bass one shot, single note, gritty saturated sub, slow sub tail, dry, no chord, no melody, no loop",
+  "instrument_id": "808-bass-0083b088",
+  "root_midi": 48
+ },
+ {
+  "file": "808-bass-91dcdcfe.wav",
+  "category": "808-bass",
+  "sha256": "91dcdcfedaa2e184964f78fbd6113f72125654e7e563b7a97b1df225bc80305d",
+  "prompt": "crisp 808 sub bass one shot, single note, techno character, gritty saturated sub, vinyl-warmed, no chord, no melody, no loop",
+  "instrument_id": "808-bass-03b49e69",
+  "root_midi": 48
+ },
+ {
+  "file": "808-bass-d5bcff76.wav",
+  "category": "808-bass",
+  "sha256": "d5bcff763d5c431f48a2b65ae5d21dd2b3055ad6743a03ce18453d5d6e6d7e86",
+  "prompt": "phonk 808 sub bass one shot, single note, gritty saturated sub, boomy sustain, tape-saturated, no chord, no melody, no loop",
+  "instrument_id": "808-bass-04961256",
+  "root_midi": 48
+ },
+ {
+  "file": "bells-28df0f5c.wav",
+  "category": "bells",
+  "sha256": "28df0f5c77c36f933e3569b493ad62355501ecbb9a85e4cfadd323c027502c7c",
+  "prompt": "clean bell one shot, single note, west coast character, clear bell tone, vinyl-warmed, no chord, no melody, no loop",
+  "instrument_id": "bells-000d6d09",
+  "root_midi": 60
+ },
+ {
+  "file": "bells-c59787fb.wav",
+  "category": "bells",
+  "sha256": "c59787fbdb6901cf6d5f68caaf9c68d8e4d0073acc6bfd55e960f284fe22ad53",
+  "prompt": "tech house airy bell one shot, single note, glassy strike, smooth fade, dry, no chord, no melody, no loop",
+  "instrument_id": "bells-00879ce7",
+  "root_midi": 60
+ },
+ {
+  "file": "bells-86c3d2a6.wav",
+  "category": "bells",
+  "sha256": "86c3d2a6551c5ebaac6eaa2f819ee34a6bc4f042796e627acc8127c99e3163dc",
+  "prompt": "wide bell one shot, single note, drill character, glassy strike, saturated, no chord, no melody, no loop",
+  "instrument_id": "bells-00c111d0",
+  "root_midi": 60
+ },
+ {
+  "file": "keys-0054eff9.wav",
+  "category": "keys",
+  "sha256": "0054eff93c377f85d641825256ece8868e47f0b41021e21d105d7ff71351f0f0",
+  "prompt": "trap electric keys one shot, single note, clear bell-like tone, natural decay, clean studio sample, no chord, no melody, no loop",
+  "instrument_id": "keys-02a3447f",
+  "root_midi": 48
+ },
+ {
+  "file": "keys-4587e2f9.wav",
+  "category": "keys",
+  "sha256": "4587e2f92c04904bd96a55b72c49034fb9b36b21359626b442e328bd3ba5bf7a",
+  "prompt": "trap edm wide electric keys one shot, bright single note, smooth release, dry, no chord, no melody, no loop",
+  "instrument_id": "keys-05250948",
+  "root_midi": 48
+ },
+ {
+  "file": "keys-e35cb23b.wav",
+  "category": "keys",
+  "sha256": "e35cb23b7819cb328963c9156b7905a3719035cf8aa3cbb7e8795bf3000c61de",
+  "prompt": "gospel keys one shot, soulful warm EP tone, smooth attack, dry, no chord",
+  "instrument_id": "keys-0c6004a2",
+  "root_midi": 48
+ },
+ {
+  "file": "pads-d9f3bbe0.wav",
+  "category": "pads",
+  "sha256": "d9f3bbe05c6671364d9423b29366730c23e42fedf55bdc08eb7e8c97a28fa9cf",
+  "prompt": "warm bass pad one shot, low rich sustained pad tone, dry, no loop, no melody",
+  "instrument_id": "pads-0113d14f",
+  "root_midi": 48
+ },
+ {
+  "file": "pads-753f9859.wav",
+  "category": "pads",
+  "sha256": "753f9859a71f8638dd69db8c9a7af4da723946a2c447b2576587aaef37cb29d2",
+  "prompt": "ambient techno clean pad one shot, single note, warm sustained tone, slow attack sustain, dry, no chord, no melody, no loop",
+  "instrument_id": "pads-014e1feb",
+  "root_midi": 48
+ },
+ {
+  "file": "pads-ce4582dc.wav",
+  "category": "pads",
+  "sha256": "ce4582dca010c37aa077f2a066608e9d5bdc17b87cd7a249e384494fcf2623ba",
+  "prompt": "deep house pad one shot, single note, warm sustained tone, gentle sustain, dry, no chord, no melody, no loop",
+  "instrument_id": "pads-01e76169",
+  "root_midi": 48
+ },
+ {
+  "file": "plucks-d0e08013.wav",
+  "category": "plucks",
+  "sha256": "d0e08013f06c84b9bab9bd5c5ac6242ed980e47d79167f488c6ba542673eeab6",
+  "prompt": "smooth acoustic pluck one shot, single note, big room character, crisp transient, dry, no chord, no melody, no loop",
+  "instrument_id": "plucks-009804a8",
+  "root_midi": 48
+ },
+ {
+  "file": "plucks-2fb4bd06.wav",
+  "category": "plucks",
+  "sha256": "2fb4bd060ebce4be9771d20a81394c0e92c888559cac1093ac01238d8673dea4",
+  "prompt": "balalaika pluck one shot, bright russian triangular pluck, dry, no chord",
+  "instrument_id": "plucks-02a07979",
+  "root_midi": 48
+ },
+ {
+  "file": "plucks-151c4578.wav",
+  "category": "plucks",
+  "sha256": "151c4578942a966d4c9fc96375be7367853d7a7ecb9dd9cadecf1345df7e2774",
+  "prompt": "minimal techno acoustic pluck one shot, single note, soft pluck, controlled decay, mono-compatible, no chord, no melody, no loop",
+  "instrument_id": "plucks-02edabfc",
+  "root_midi": 48
+ },
+ {
+  "file": "organs-c630808d.wav",
+  "category": "organs",
+  "sha256": "c630808d588a8013dfa99c4f0650706fbae311097db33d2f18d3600a25460bd3",
+  "prompt": "toy organ one shot, lo-fi plastic organ tone, simple character, dry, no chord, no loop",
+  "instrument_id": "organs-02ad1212",
+  "root_midi": 49
+ },
+ {
+  "file": "organs-536e149b.wav",
+  "category": "organs",
+  "sha256": "536e149bafc4be7427b6ae05a06c04305cce237ef880d2db337e219853536384",
+  "prompt": "future bass organ one shot, single note, wide stereo body, long evolving tail, dry, no chord, no melody, no loop",
+  "instrument_id": "organs-02d2f358",
+  "root_midi": 48
+ },
+ {
+  "file": "organs-4bb090a1.wav",
+  "category": "organs",
+  "sha256": "4bb090a1833399531ce45b3ea9051eb3c33f5cae03fcab2c8d172d953515b537",
+  "prompt": "metallic organ one shot, single note, chamber character, warm sustained tone, dry, no chord, no melody, no loop",
+  "instrument_id": "organs-0390c087",
+  "root_midi": 48
+ },
+ {
+  "file": "strings-0ce62695.wav",
+  "category": "strings",
+  "sha256": "0ce62695c71bff3703e5b5e2ab04b90b5d1f24d1ea2509a7627ec7bbdd2a7030",
+  "prompt": "solina string synth one shot, classic late 70s string machine, sustained, dry, no chord",
+  "instrument_id": "strings-003f74f5",
+  "root_midi": 48
+ },
+ {
+  "file": "strings-7b177216.wav",
+  "category": "strings",
+  "sha256": "7b177216b6933735c8e777f486ad20187f5da2274587e076646ad2cfde0271e3",
+  "prompt": "orchestral saturated strings one shot, expressive single note, gentle release, dry, no chord, no melody, no loop",
+  "instrument_id": "strings-03495259",
+  "root_midi": 48
+ },
+ {
+  "file": "strings-4b06352f.wav",
+  "category": "strings",
+  "sha256": "4b06352fef86022fa158d4fdd78ccd1c877e1bb91a9845c448065de583b0c338",
+  "prompt": "romantic string section one shot, lush expressive ensemble, sustained, dry, no loop",
+  "instrument_id": "strings-059f1e92",
+  "root_midi": 48
+ },
+ {
+  "file": "brass-245cd999.wav",
+  "category": "brass",
+  "sha256": "245cd999e7ea732693fdc0668cd53a5fc3ab05deaedbc5c05dacb4903546857e",
+  "prompt": "vintage brass one shot, single note, jazz character, warm brassy tone, clean studio sample, no chord, no melody, no loop",
+  "instrument_id": "brass-0301f45c",
+  "root_midi": 47
+ },
+ {
+  "file": "brass-a88111ed.wav",
+  "category": "brass",
+  "sha256": "a88111edc2a77041ec4f98ebc4ad5995ee4f4d4a902cac262995587045798dcd",
+  "prompt": "hip-hop dark brass one shot, single note, rich harmonic body, natural decay, dry, no chord, no melody, no loop",
+  "instrument_id": "brass-03d19655",
+  "root_midi": 47
+ },
+ {
+  "file": "brass-b200be39.wav",
+  "category": "brass",
+  "sha256": "b200be395f438ead55b7cb8f388e840bfe84ccc12acbb46d0b14224e88d2807e",
+  "prompt": "classical trumpet one shot, pure focused tone, traditional brass character, dry, no chord",
+  "instrument_id": "brass-049ec4b7",
+  "root_midi": 47
+ },
+ {
+  "file": "accordion-765ea6d5.wav",
+  "category": "accordion",
+  "sha256": "765ea6d5174f9d58681ad89fbb6024d81185a94345621e2b5710915ac6076338",
+  "prompt": "dusty accordion one shot, single note, jazz character, warm woodwind tone, analog, no chord, no melody, no loop",
+  "instrument_id": "accordion-032b6869",
+  "root_midi": 48
+ },
+ {
+  "file": "accordion-02314e55.wav",
+  "category": "accordion",
+  "sha256": "02314e552a3d243b2d8da7883fcb7af4b2e36e19020888c3cc53b0d7c537b617",
+  "prompt": "world mellow accordion one shot, single note, soft attack, gentle release, dry, no chord, no melody, no loop",
+  "instrument_id": "accordion-03f2ea8f",
+  "root_midi": 48
+ },
+ {
+  "file": "accordion-c48413fe.wav",
+  "category": "accordion",
+  "sha256": "c48413feb24a67f586c3628f8a0d0db01eea5ffe81bb2a6de5e5980c3b47956d",
+  "prompt": "cinematic accordion one shot, single note, soft attack, natural decay, analog, no chord, no melody, no loop",
+  "instrument_id": "accordion-041e6eb4",
+  "root_midi": 48
+ },
+ {
+  "file": "banjos-33a8e286.wav",
+  "category": "banjos",
+  "sha256": "33a8e286f168f0f45a08858817d1429813329490d334e76d4b27b9da1a348c9c",
+  "prompt": "smooth banjo one shot, single note, chamber character, woody character, vinyl-warmed, no chord, no melody, no loop",
+  "instrument_id": "banjos-00b41df9",
+  "root_midi": 53
+ },
+ {
+  "file": "banjos-7f579f47.wav",
+  "category": "banjos",
+  "sha256": "7f579f470e643d9fcc4ee7ec4e8634b7c65d35864854e53a026c32129794d591",
+  "prompt": "world banjo one shot, resonant single note, natural decay, clean studio sample, no chord, no melody, no loop",
+  "instrument_id": "banjos-037c7632",
+  "root_midi": 53
+ },
+ {
+  "file": "banjos-ebbe0740.wav",
+  "category": "banjos",
+  "sha256": "ebbe0740c9b311d6c671b5a7a66c980ad296989381a04d44bcd3b750019df9a5",
+  "prompt": "drum and bass aggressive banjo one shot, single note, woody character, natural decay, dry, no chord, no melody, no loop",
+  "instrument_id": "banjos-049d02d6",
+  "root_midi": 57
+ },
+ {
+  "file": "guitars-a865fcd7.wav",
+  "category": "guitars",
+  "sha256": "a865fcd7cde4ce455ab95017ee05f5dca9d17c2d5aa393152bb40e3c9a936c33",
+  "prompt": "weissenborn one shot, hollow lap steel tone, warm sustain, dry, no chord",
+  "instrument_id": "guitars-044d5ded",
+  "root_midi": 48
+ },
+ {
+  "file": "guitars-f319964a.wav",
+  "category": "guitars",
+  "sha256": "f319964a7c7b49ab591367a16b0674eccd181e6b1550016d0c129d78947b405e",
+  "prompt": "vintage guitar one shot, dusty warm electric tone, lo-fi character, dry, no loop, no melody",
+  "instrument_id": "guitars-058ee462",
+  "root_midi": 48
+ },
+ {
+  "file": "guitars-da5b3463.wav",
+  "category": "guitars",
+  "sha256": "da5b3463bf8a625fb05d3d181051883c0f5b89e8c02b9f6068c57e5f15690441",
+  "prompt": "balalaika one shot, bright triangular russian pluck, dry, no chord",
+  "instrument_id": "guitars-07f90deb",
+  "root_midi": 48
+ },
+ {
+  "file": "pianos-6c770f76.wav",
+  "category": "pianos",
+  "sha256": "6c770f7690b6ace2e56a5f752765703094bd697a04d791354098a008a99ec378",
+  "prompt": "home upright piano one shot, mellow domestic piano tone, dry, no chord, no loop",
+  "instrument_id": "pianos-00a80bbb",
+  "root_midi": 48
+ },
+ {
+  "file": "pianos-5fbbd5df.wav",
+  "category": "pianos",
+  "sha256": "5fbbd5df48da6600acad3fbb78bcb644687d1cdf27534129d4a08e2cb74b3bec",
+  "prompt": "film piano one shot, emotional warm piano tone, sustained, dry, no loop, no melody",
+  "instrument_id": "pianos-03352d71",
+  "root_midi": 48
+ },
+ {
+  "file": "pianos-15ed3477.wav",
+  "category": "pianos",
+  "sha256": "15ed34777e6c3c8daae47c71f2db81d667db21b90c2e74465164294fd65fffff",
+  "prompt": "vintage piano one shot, single note, classical character, percussive attack, clean studio sample, no chord, no melody, no loop",
+  "instrument_id": "pianos-0360987c",
+  "root_midi": 47
+ },
+ {
+  "file": "synths-9fccc479.wav",
+  "category": "synths",
+  "sha256": "9fccc4794c1a71d758334b0e2c6bc8bbb572474ae2453be08a8548f9a04ea72a",
+  "prompt": "trap wide synth one shot, single note, detuned supersaw stack, sustained tone, dry, no chord, no melody, no loop",
+  "instrument_id": "synths-000afb01",
+  "root_midi": 48
+ },
+ {
+  "file": "synths-1b5f1bb4.wav",
+  "category": "synths",
+  "sha256": "1b5f1bb453e54d8a8c57685f12a9c56f6149bfa1ee14e928f5276465b2c8832b",
+  "prompt": "deep house synth one shot, single note, detuned supersaw stack, natural decay, clean studio sample, no chord, no melody, no loop",
+  "instrument_id": "synths-00357402",
+  "root_midi": 48
+ },
+ {
+  "file": "synths-7c5e86f2.wav",
+  "category": "synths",
+  "sha256": "7c5e86f2ed3711959d36fe9712fe4bc75fa2e61742c6b75b8f9aae64861e92b0",
+  "prompt": "hollow synth one shot, dubstep character, expressive single note, vinyl-warmed, no chord, no melody, no loop",
+  "instrument_id": "synths-016d527d",
+  "root_midi": 49
+ }
+]

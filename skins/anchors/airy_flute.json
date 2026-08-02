@@ -1,0 +1,13 @@
+{
+ "schema_version": "0.1.0",
+ "name": "airy_flute",
+ "skin_seed": 1010,
+ "exciter": {"type": "breath", "hardness": 0.35, "color": 0.7, "level": 0.85,
+             "noisiness": 0.45, "roughness": 0.35},
+ "body": {"ratio_law": "string", "mode_count": 10, "inharmonicity": 0.02,
+          "brightness": 0.55, "t60_base_s": 0.9, "damping_slope": 0.9,
+          "irregularity": 0.05, "position": 0.45},
+ "velocity": {"to_level": 0.85, "to_brightness": 0.5, "to_hardness": 0.3},
+ "release": {"mode": "damped", "damp_factor": 5.0},
+ "radiation": {"stereo_spread": 0.35, "gain": 0.5, "space_mix": 0.18, "space_size": 0.35}
+}

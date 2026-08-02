@@ -70,12 +70,18 @@ RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
                             const skin::SoundSkin& skin, std::uint64_t seed,
                             double normalize_peak_dbfs,
                             const std::vector<float>* exciter_pcm,
-                            std::int64_t loop_samples) {
+                            std::int64_t loop_samples,
+                            const std::vector<float>* wavetable_pcm) {
   const auto& notes = timeline.notes();
   if (skin.exciter.type == skin::ExciterType::sample &&
       (exciter_pcm == nullptr || exciter_pcm->empty())) {
     throw RenderError("skin '" + skin.name +
                       "' needs its exciter sample loaded (--exciter-dir)");
+  }
+  if (skin.exciter.type == skin::ExciterType::wavetable &&
+      (wavetable_pcm == nullptr || wavetable_pcm->size() < 8)) {
+    throw RenderError("skin '" + skin.name +
+                      "' needs its wavetable loaded (--wavetable-dir)");
   }
 
   // Build every voice first: sizes the buffer and enforces the polyphony /
@@ -84,7 +90,8 @@ RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
   voices.reserve(notes.size());
   std::int64_t end = timeline.totalSamples();
   for (const midi::NoteEvent& note : notes) {
-    dsp::ModalVoice v(skin, note, timeline.sampleRate(), seed, exciter_pcm);
+    dsp::ModalVoice v(skin, note, timeline.sampleRate(), seed, exciter_pcm,
+                      wavetable_pcm);
     if (v.activeModes() == 0) {
       throw RenderError("pitch out of playable range for skin '" + skin.name +
                         "': note " + std::to_string(note.pitch));
@@ -131,6 +138,56 @@ RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
                         result.audit.max_on_error_samples == 0 &&
                         result.audit.max_off_error_samples == 0 &&
                         result.audit.dropped_voices == 0;
+
+  // Polish stage (deterministic; each gene 0 = bypass): saturation on the
+  // dry sum, then a slow seeded lowpass sweep (motion), then chorus width.
+  if (skin.radiation.sat > 0.0) {
+    const double d = 1.0 + 5.0 * skin.radiation.sat;
+    const double norm = std::tanh(d);
+    for (std::size_t n = 0; n < left.size(); ++n) {
+      left[n] = std::tanh(left[n] * d) / norm;
+      right[n] = std::tanh(right[n] * d) / norm;
+    }
+  }
+  if (skin.radiation.motion > 0.0) {
+    const double rate = 0.05 + 0.17 * ((skin.skin_seed % 977) / 977.0);
+    const double sr_d = timeline.sampleRate();
+    double lpl = 0.0, lpr = 0.0;
+    for (std::size_t n = 0; n < left.size(); ++n) {
+      const double sweep = 0.5 - 0.5 * std::cos(2.0 * 3.14159265358979 * rate *
+                                                static_cast<double>(n) / sr_d);
+      const double cutoff = 800.0 * std::pow(10.0, sweep);  // 800 Hz .. 8 kHz
+      const double a = 1.0 - std::exp(-2.0 * 3.14159265358979 * cutoff / sr_d);
+      lpl += a * (left[n] - lpl);
+      lpr += a * (right[n] - lpr);
+      left[n] = left[n] * (1.0 - skin.radiation.motion) + lpl * skin.radiation.motion;
+      right[n] = right[n] * (1.0 - skin.radiation.motion) + lpr * skin.radiation.motion;
+    }
+  }
+  if (skin.radiation.chorus > 0.0) {
+    const double sr_d = timeline.sampleRate();
+    const std::size_t max_d = static_cast<std::size_t>(0.020 * sr_d);
+    auto tap = [&](std::vector<double>& x, double base_ms, double rate_hz,
+                   double phase0) {
+      std::vector<double> src = x;
+      for (std::size_t n = 0; n < x.size(); ++n) {
+        const double lfo = std::sin(2.0 * 3.14159265358979 *
+                                    (rate_hz * static_cast<double>(n) / sr_d + phase0));
+        const double d = (base_ms + 3.0 * lfo) * 0.001 * sr_d;
+        const double pos = static_cast<double>(n) - std::min(d, static_cast<double>(max_d));
+        if (pos >= 0.0) {
+          const auto i0 = static_cast<std::size_t>(pos);
+          const double frac = pos - std::floor(pos);
+          const double wetv = src[i0] * (1.0 - frac) +
+                              (i0 + 1 < src.size() ? src[i0 + 1] : 0.0) * frac;
+          x[n] += wetv * 0.5 * skin.radiation.chorus;
+        }
+      }
+    };
+    const double p0 = (skin.skin_seed % 611) / 611.0;
+    tap(left, 9.0, 0.31, p0);
+    tap(right, 12.0, 0.47, p0 + 0.37);
+  }
 
   // Space stage: skin-controlled deterministic room. Extends the audible tail,
   // so run BEFORE loop folding and safety scanning.

@@ -31,6 +31,7 @@ struct Args {
   std::filesystem::path skin;
   std::filesystem::path out;
   std::filesystem::path exciter_dir;
+  std::filesystem::path wavetable_dir;
   std::uint64_t seed = 0;
   std::uint32_t sample_rate = 48000;
   std::int64_t loop_samples = 0;
@@ -65,6 +66,8 @@ std::optional<Args> parseArgs(int argc, char** argv) {
       a.exciter_dir = v;
     } else if (flag == "--loop-samples" && (v = next())) {
       a.loop_samples = std::stoll(v);
+    } else if (flag == "--wavetable-dir" && (v = next())) {
+      a.wavetable_dir = v;
     } else {
       return std::nullopt;
     }
@@ -114,6 +117,20 @@ int main(int argc, char** argv) {
   }
 
   std::vector<float> exciter_pcm;
+  std::vector<float> wavetable_pcm;
+  if (skin.exciter.type == mattergraph::skin::ExciterType::wavetable) {
+    if (args->wavetable_dir.empty()) {
+      std::cerr << "invalid skin: wavetable-type skin needs --wavetable-dir\n";
+      return 3;
+    }
+    try {
+      wavetable_pcm = mattergraph::render::readWavMono(
+          args->wavetable_dir / skin.exciter.wavetable, args->sample_rate);
+    } catch (const std::exception& e) {
+      std::cerr << "invalid skin: " << e.what() << "\n";
+      return 3;
+    }
+  }
   if (skin.exciter.type == mattergraph::skin::ExciterType::sample) {
     if (args->exciter_dir.empty()) {
       std::cerr << "invalid skin: sample-type skin needs --exciter-dir\n";
@@ -132,7 +149,8 @@ int main(int argc, char** argv) {
   try {
     result = mattergraph::render::renderTimeline(
         timeline, skin, args->seed, args->normalize_dbfs.value_or(0.0),
-        exciter_pcm.empty() ? nullptr : &exciter_pcm, args->loop_samples);
+        exciter_pcm.empty() ? nullptr : &exciter_pcm, args->loop_samples,
+        wavetable_pcm.empty() ? nullptr : &wavetable_pcm);
   } catch (const std::exception& e) {
     std::cerr << "render failure: " << e.what() << "\n";
     return 4;

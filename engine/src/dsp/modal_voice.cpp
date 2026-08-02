@@ -59,7 +59,8 @@ double blepSaw(double phase, double dt) {
 
 ModalVoice::ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
                        std::uint32_t sample_rate, std::uint64_t render_seed,
-                       const std::vector<float>* exciter_pcm) {
+                       const std::vector<float>* exciter_pcm,
+                       const std::vector<float>* wavetable_pcm) {
   const double sr = static_cast<double>(sample_rate);
   on_sample_ = note.on_sample;
   off_sample_ = note.off_sample;
@@ -233,6 +234,171 @@ ModalVoice::ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
       for (double& s : burst_) {
         s *= energy;
       }
+    }
+    const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
+    end_sample_ = off_sample_ + static_cast<std::int64_t>(tail_s * sr) + 1;
+    gain_ = skin.radiation.gain;
+    return;
+  }
+
+  if (skin.exciter.type == skin::ExciterType::breath) {
+    // --- Breath/air-jet: pitch-tracked resonant noise (flute family). ---
+    // Two resonant bandpasses at f0 and 2f0 shape white noise into a breathy
+    // tone; a lowpassed breath floor (noisiness) and slow seeded turbulence
+    // (roughness) supply the air. Sustained until note-off; friction-style
+    // RMS + 1/t60 drive compensation.
+    constexpr double kMaxDriveSeconds = 30.0;
+    const auto drive_n = static_cast<std::size_t>(std::min(
+        static_cast<double>(off_sample_ - on_sample_), kMaxDriveSeconds * sr));
+    burst_.assign(std::max<std::size_t>(drive_n, 2), 0.0);
+
+    Rng noise(deriveStream(render_seed,
+                           0x42726561ULL ^ static_cast<std::uint64_t>(note.source_index)));
+    struct Bp { double b0, a1, a2, x1{}, x2{}, y1{}, y2{}; };
+    auto makeBp = [&](double f, double q) {
+      Bp bp{};
+      const double w0 = 2.0 * std::numbers::pi * std::min(f, sr * 0.45) / sr;
+      const double alpha = std::sin(w0) / (2.0 * q);
+      const double a0 = 1.0 + alpha;
+      bp.b0 = alpha / a0;
+      bp.a1 = -2.0 * std::cos(w0) / a0;
+      bp.a2 = (1.0 - alpha) / a0;
+      return bp;
+    };
+    auto tick = [](Bp& bp, double x) {
+      const double y = bp.b0 * x - bp.b0 * bp.x2 - bp.a1 * bp.y1 - bp.a2 * bp.y2;
+      bp.x2 = bp.x1; bp.x1 = x;
+      bp.y2 = bp.y1; bp.y1 = y;
+      return y;
+    };
+    const double q = mix(8.0, 40.0, color_v);  // brighter = purer tone
+    Bp r1 = makeBp(f0_, q);
+    Bp r2 = makeBp(2.0 * f0_, q * 0.8);
+    const double attack_s = mix(0.20, 0.02, hardness_v);
+    const auto attack_n = std::max<std::size_t>(static_cast<std::size_t>(attack_s * sr), 1);
+    double lp = 0.0;
+    double turb_phase = 0.0;
+    double walk = 0.0;
+    for (std::size_t n = 0; n < burst_.size(); ++n) {
+      const double white = noise.bipolar();
+      lp += 0.12 * (white - lp);
+      walk = std::clamp(walk + 0.001 * noise.bipolar(), -1.0, 1.0);
+      turb_phase += (6.0 + 8.0 * skin.exciter.roughness * (1.0 + 0.5 * walk)) / sr;
+      turb_phase -= std::floor(turb_phase);
+      const double turb = 1.0 - 0.35 * skin.exciter.roughness *
+                                    (0.5 - 0.5 * std::cos(2.0 * std::numbers::pi * turb_phase));
+      const double tone = tick(r1, white) + 0.5 * tick(r2, white);
+      const double env = n < attack_n
+                             ? 0.5 * (1.0 - std::cos(std::numbers::pi *
+                                                     static_cast<double>(n) /
+                                                     static_cast<double>(attack_n)))
+                             : 1.0;
+      burst_[n] = (tone * (1.0 - skin.exciter.noisiness * 0.6) +
+                   lp * skin.exciter.noisiness) * env * turb;
+    }
+    double sum_sq = 0.0;
+    for (double s : burst_) sum_sq += s * s;
+    const double rms = std::sqrt(sum_sq / static_cast<double>(burst_.size()));
+    const double drive = 0.04 * energy /
+                         ((0.3 + skin.body.t60_base_s) * std::max(rms, 1e-9));
+    for (double& s : burst_) s *= drive;
+    const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
+    end_sample_ = off_sample_ + static_cast<std::int64_t>(tail_s * sr) + 1;
+    gain_ = skin.radiation.gain;
+    return;
+  }
+
+  if (skin.exciter.type == skin::ExciterType::brass) {
+    // --- Simplified brass: pressure-shaped buzz through a bore comb. ---
+    // Honest scope: this is buzz-plus-bore (deterministic, bounded), not a
+    // full lip-valve physical model — that remains the flagship research
+    // episode. Pressure (velocity + attack ramp) drives buzz brightness and
+    // bore feedback, giving the swelling brassy bloom.
+    constexpr double kMaxDriveSeconds = 30.0;
+    const auto drive_n = static_cast<std::size_t>(std::min(
+        static_cast<double>(off_sample_ - on_sample_), kMaxDriveSeconds * sr));
+    burst_.assign(std::max<std::size_t>(drive_n, 2), 0.0);
+
+    const double bore_len = sr / f0_;
+    const auto L = std::max<std::size_t>(2, static_cast<std::size_t>(bore_len));
+    std::vector<double> bore(L, 0.0);
+    std::size_t head = 0;
+    const double attack_s = mix(0.15, 0.01, hardness_v);
+    const auto attack_n = std::max<std::size_t>(static_cast<std::size_t>(attack_s * sr), 1);
+    const double fb = 0.55 + 0.35 * skin.exciter.drive;  // bore resonance
+    double phase = 0.0;
+    double lp = 0.0;
+    for (std::size_t n = 0; n < burst_.size(); ++n) {
+      const double pressure =
+          n < attack_n ? static_cast<double>(n) / static_cast<double>(attack_n) : 1.0;
+      phase += f0_ / sr;
+      phase -= std::floor(phase);
+      const double saw = blepSaw(phase, f0_ / sr);
+      // Pressure brightens the buzz (soft playing = darker, mellower).
+      const double buzz = std::tanh(saw * (0.8 + 3.0 * pressure * (0.3 + color_v)));
+      const double bore_out = bore[head];
+      const double v = buzz * pressure + bore_out * fb;
+      lp += mix(0.15, 0.6, color_v) * (v - lp);  // bore losses darken feedback
+      bore[head] = std::tanh(lp * 0.95);          // bounded by construction
+      head = (head + 1) % L;
+      burst_[n] = bore_out + 0.3 * buzz * pressure;
+    }
+    double sum_sq = 0.0;
+    for (double s : burst_) sum_sq += s * s;
+    const double rms = std::sqrt(sum_sq / static_cast<double>(burst_.size()));
+    const double drive = 0.04 * energy /
+                         ((0.3 + skin.body.t60_base_s) * std::max(rms, 1e-9));
+    for (double& s : burst_) s *= drive;
+    const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
+    end_sample_ = off_sample_ + static_cast<std::int64_t>(tail_s * sr) + 1;
+    gain_ = skin.radiation.gain;
+    return;
+  }
+
+  if (skin.exciter.type == skin::ExciterType::wavetable) {
+    // --- Wavetable: a single-cycle table (mined from the owned instrument
+    // pack, prompt-labeled) looped at the note's exact pitch. Two seeded-
+    // detuned voices, color lowpass, sustained until off. Tables are
+    // band-limited at extraction; naive interp aliasing is acceptable below
+    // ~C6 and documented.
+    constexpr double kMaxDriveSeconds = 30.0;
+    const auto drive_n = static_cast<std::size_t>(std::min(
+        static_cast<double>(off_sample_ - on_sample_), kMaxDriveSeconds * sr));
+    burst_.assign(std::max<std::size_t>(drive_n, 2), 0.0);
+    if (wavetable_pcm != nullptr && wavetable_pcm->size() >= 8) {
+      const auto T = wavetable_pcm->size();
+      const double detune = skin.exciter.detune_cents;
+      const double ratios[2] = {std::exp2(-detune / 2400.0), std::exp2(detune / 2400.0)};
+      double phases[2] = {0.11, 0.63};
+      const double lp_a = mix(0.05, 0.9, std::pow(color_v, 1.5));
+      const double attack_s = mix(0.20, 0.008, hardness_v);
+      const auto attack_n = std::max<std::size_t>(static_cast<std::size_t>(attack_s * sr), 1);
+      double lp = 0.0;
+      for (std::size_t n = 0; n < burst_.size(); ++n) {
+        double v = 0.0;
+        for (int k = 0; k < 2; ++k) {
+          phases[k] += f0_ * ratios[k] / sr;
+          phases[k] -= std::floor(phases[k]);
+          const double pos = phases[k] * static_cast<double>(T);
+          const auto i0 = static_cast<std::size_t>(pos) % T;
+          const std::size_t i1 = (i0 + 1) % T;
+          const double frac = pos - std::floor(pos);
+          v += (*wavetable_pcm)[i0] * (1.0 - frac) + (*wavetable_pcm)[i1] * frac;
+        }
+        lp += lp_a * (v * 0.5 - lp);
+        const double env = n < attack_n
+                               ? 0.5 * (1.0 - std::cos(std::numbers::pi *
+                                                       static_cast<double>(n) /
+                                                       static_cast<double>(attack_n)))
+                               : 1.0;
+        burst_[n] = lp * env;
+      }
+      double sum_sq = 0.0;
+      for (double s : burst_) sum_sq += s * s;
+      const double rms = std::sqrt(sum_sq / static_cast<double>(burst_.size()));
+      const double drive = 0.04 * energy /
+                           ((0.3 + skin.body.t60_base_s) * std::max(rms, 1e-9));
+      for (double& s : burst_) s *= drive;
     }
     const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
     end_sample_ = off_sample_ + static_cast<std::int64_t>(tail_s * sr) + 1;

@@ -1,0 +1,14 @@
+{
+ "schema_version": "0.1.0",
+ "name": "wavetable_keys",
+ "skin_seed": 1212,
+ "exciter": {"type": "wavetable", "wavetable": "basses-a9bc57df.wav", "hardness": 0.5,
+             "color": 0.65, "level": 0.85, "detune_cents": 7},
+ "body": {"ratio_law": "string", "mode_count": 12, "inharmonicity": 0.03,
+          "brightness": 0.55, "t60_base_s": 1.0, "damping_slope": 0.8,
+          "irregularity": 0.05, "position": 0.4},
+ "velocity": {"to_level": 0.85, "to_brightness": 0.45, "to_hardness": 0.3},
+ "release": {"mode": "damped", "damp_factor": 5.0},
+ "radiation": {"stereo_spread": 0.5, "gain": 0.5, "space_mix": 0.15,
+               "space_size": 0.3, "chorus": 0.25}
+}

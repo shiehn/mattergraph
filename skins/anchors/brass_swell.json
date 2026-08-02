@@ -1,0 +1,12 @@
+{
+ "schema_version": "0.1.0",
+ "name": "brass_swell",
+ "skin_seed": 1111,
+ "exciter": {"type": "brass", "hardness": 0.3, "color": 0.6, "level": 0.9, "drive": 0.55},
+ "body": {"ratio_law": "string", "mode_count": 16, "inharmonicity": 0.03,
+          "brightness": 0.6, "t60_base_s": 0.7, "damping_slope": 0.7,
+          "irregularity": 0.06, "position": 0.4},
+ "velocity": {"to_level": 0.9, "to_brightness": 0.6, "to_hardness": 0.5},
+ "release": {"mode": "damped", "damp_factor": 6.0},
+ "radiation": {"stereo_spread": 0.45, "gain": 0.5, "space_mix": 0.15, "space_size": 0.4, "sat": 0.2}
+}

@@ -64,6 +64,7 @@ RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
                             const skin::SoundSkin& skin, std::uint64_t seed,
                             double normalize_peak_dbfs = 0.0,
                             const std::vector<float>* exciter_pcm = nullptr,
-                            std::int64_t loop_samples = 0);
+                            std::int64_t loop_samples = 0,
+                            const std::vector<float>* wavetable_pcm = nullptr);
 
 }  // namespace mattergraph::render

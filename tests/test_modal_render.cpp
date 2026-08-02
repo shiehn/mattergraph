@@ -315,6 +315,65 @@ TEST_CASE("pluck_string: exact pitch, plucked decay, deterministic") {
   CHECK(late < early * 0.8);
 }
 
+TEST_CASE("breath and brass sustain at pitch, deterministically") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_sustain.clipspec.json"), 48000);
+  for (const char* name : {"airy_flute.json", "brass_swell.json"}) {
+    const auto skin = loadSoundSkinFromFile(skinPath(name));
+    const RenderResult a = renderTimeline(tl, skin, 13);
+    const RenderResult b = renderTimeline(tl, skin, 13);
+    REQUIRE(a.audit.passed);
+    REQUIRE(a.interleaved == b.interleaved);
+    const double early = windowRms(a.interleaved, 24000, 48000);
+    const double late = windowRms(a.interleaved, 120000, 144000);
+    INFO(name);
+    REQUIRE(early > 1e-4);
+    CHECK(late > early * 0.2);  // sustained gesture
+  }
+}
+
+TEST_CASE("wavetable exciter loops a provided table at exact pitch") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_sustain.clipspec.json"), 48000);
+  const auto skin = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "wt_test", "skin_seed": 6,
+    "exciter": {"type": "wavetable", "wavetable": "inline.wav", "detune_cents": 6},
+    "body": {"mode_count": 10, "inharmonicity": 0.0, "t60_base_s": 1.2},
+    "release": {"mode": "natural"}})");
+  // Simple band-limited table: fundamental + 3 harmonics, 2048 samples.
+  std::vector<float> table(2048);
+  for (std::size_t n = 0; n < table.size(); ++n) {
+    const double ph = 2.0 * 3.14159265358979 * static_cast<double>(n) / 2048.0;
+    table[n] = static_cast<float>(std::sin(ph) + 0.5 * std::sin(2 * ph) +
+                                  0.25 * std::sin(3 * ph));
+  }
+  const RenderResult a = renderTimeline(tl, skin, 5, 0.0, nullptr, 0, &table);
+  const RenderResult b = renderTimeline(tl, skin, 5, 0.0, nullptr, 0, &table);
+  REQUIRE(a.audit.passed);
+  REQUIRE(a.interleaved == b.interleaved);
+  CHECK(windowRms(a.interleaved, 24000, 96000) > 1e-4);
+  CHECK_THROWS(renderTimeline(tl, skin, 5, 0.0, nullptr, 0, nullptr));
+}
+
+TEST_CASE("polish genes at zero are byte-identical bypass") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_strike.clipspec.json"), 48000);
+  const auto plain = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "p0", "skin_seed": 8,
+    "body": {"mode_count": 8, "t60_base_s": 0.6}})");
+  const auto zeroed = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "p0", "skin_seed": 8,
+    "body": {"mode_count": 8, "t60_base_s": 0.6},
+    "radiation": {"chorus": 0.0, "sat": 0.0, "motion": 0.0}})");
+  REQUIRE(renderTimeline(tl, plain, 3).interleaved ==
+          renderTimeline(tl, zeroed, 3).interleaved);
+  const auto polished = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "p1", "skin_seed": 8,
+    "body": {"mode_count": 8, "t60_base_s": 0.6},
+    "radiation": {"chorus": 0.4, "sat": 0.3, "motion": 0.3}})");
+  const RenderResult a = renderTimeline(tl, polished, 3);
+  const RenderResult b = renderTimeline(tl, polished, 3);
+  REQUIRE(a.interleaved == b.interleaved);
+  CHECK(a.interleaved != renderTimeline(tl, plain, 3).interleaved);
+}
+
 TEST_CASE("normalize option hits the requested peak") {
   const auto tl = buildTimelineFromClipSpecFile(fixture("probes/bass_groove.clipspec.json"), 48000);
   const auto skin = loadSoundSkinFromFile(skinPath("metal_bell.json"));

@@ -85,9 +85,16 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
         s.exciter.type = ExciterType::periodic;
       } else if (type == "pluck_string") {
         s.exciter.type = ExciterType::pluck_string;
+      } else if (type == "breath") {
+        s.exciter.type = ExciterType::breath;
+      } else if (type == "brass") {
+        s.exciter.type = ExciterType::brass;
+      } else if (type == "wavetable") {
+        s.exciter.type = ExciterType::wavetable;
       } else {
         fail("SoundSkin: exciter.type must be one of 'noise_burst', 'impulse', "
-             "'friction', 'sample', 'periodic', 'pluck_string'");
+             "'friction', 'sample', 'periodic', 'pluck_string', 'breath', "
+             "'brass', 'wavetable'");
       }
     }
     s.exciter.hardness = numInRange(e, "hardness", 0, 1, s.exciter.hardness, "exciter");
@@ -109,8 +116,17 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
     s.exciter.detune_cents =
         numInRange(e, "detune_cents", 0, 30, s.exciter.detune_cents, "exciter");
     s.exciter.drive = numInRange(e, "drive", 0, 1, s.exciter.drive, "exciter");
+    if (auto wt = e.find("wavetable"); wt != e.end()) {
+      if (!wt->is_string()) {
+        fail("SoundSkin: exciter.wavetable must be a string filename");
+      }
+      s.exciter.wavetable = wt->get<std::string>();
+    }
     if (s.exciter.type == ExciterType::sample && s.exciter.sample.empty()) {
       fail("SoundSkin: exciter.type 'sample' requires exciter.sample");
+    }
+    if (s.exciter.type == ExciterType::wavetable && s.exciter.wavetable.empty()) {
+      fail("SoundSkin: exciter.type 'wavetable' requires exciter.wavetable");
     }
   }
 
@@ -177,6 +193,9 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
         numInRange(r, "space_mix", 0, 1, s.radiation.space_mix, "radiation");
     s.radiation.space_size =
         numInRange(r, "space_size", 0, 1, s.radiation.space_size, "radiation");
+    s.radiation.chorus = numInRange(r, "chorus", 0, 1, s.radiation.chorus, "radiation");
+    s.radiation.sat = numInRange(r, "sat", 0, 1, s.radiation.sat, "radiation");
+    s.radiation.motion = numInRange(r, "motion", 0, 1, s.radiation.motion, "radiation");
   }
 
   return s;

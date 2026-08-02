@@ -23,7 +23,8 @@ class ModalVoice {
   // itself never touches the filesystem).
   ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
              std::uint32_t sample_rate, std::uint64_t render_seed,
-             const std::vector<float>* exciter_pcm = nullptr);
+             const std::vector<float>* exciter_pcm = nullptr,
+             const std::vector<float>* wavetable_pcm = nullptr);
 
   // Number of modes that survived Nyquist pruning; 0 means the note's pitch is
   // out of the skin's playable range and the render must be rejected (§3.4).

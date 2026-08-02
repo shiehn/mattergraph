@@ -15,7 +15,7 @@ namespace mattergraph::skin {
 // macros + velocity mappings + release behavior + radiation + provenance seed.
 
 enum class ExciterType { noise_burst, impulse, friction, sample, periodic,
-                         pluck_string };
+                         pluck_string, breath, brass, wavetable };
 enum class ReleaseMode { natural, damped };
 // Partial-frequency law of the body. "string": stiff-string stretch
 // r_k = k·sqrt(1+Bk²) (max stretch ≈ 1:2.3 — strings, bells-ish, plucks).
@@ -47,6 +47,9 @@ struct SoundSkin {
     double wave{0.0};           // 0 saw .. 1 square (polyBLEP band-limited)
     double detune_cents{8.0};   // 0..30 spread of the three voices
     double drive{0.3};          // 0..1 saturation into the body
+    // wavetable-type only: single-cycle table (from the owned instrument
+    // pack, prompt-labeled) resolved against --wavetable-dir.
+    std::string wavetable;
   } exciter;
 
   struct Body {
@@ -78,6 +81,10 @@ struct SoundSkin {
     // pre-space skins render byte-identically.
     double space_mix{0.0};     // 0..1 wet send
     double space_size{0.3};    // 0..1 room size/decay/pre-delay
+    // Polish stage (all deterministic; 0 = bypassed, byte-identical):
+    double chorus{0.0};        // 0..1 two-tap modulated-delay width/shimmer
+    double sat{0.0};           // 0..1 tanh saturation on the dry sum
+    double motion{0.0};        // 0..1 slow seeded lowpass sweep depth
   } radiation;
 };
 
