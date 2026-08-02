@@ -34,6 +34,10 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--atlas", type=Path, required=True)
     ap.add_argument("--topk", type=int, default=3)
+    ap.add_argument("--v2", action="store_true",
+                    help="score with the production retrieval path (best-probe "
+                         "match + constraint/gesture gating from query.py) "
+                         "instead of the legacy mean-pooled path")
     args = ap.parse_args()
 
     atlas = Atlas(args.atlas)
@@ -67,15 +71,26 @@ def main() -> None:
     embedder = ClapEmbedder()
     embedder.health_check()
     text_vecs = embedder.embed_text([p for p, _ in HELD_OUT])
-    sims = text_vecs @ mat.T  # (prompts, skins)
+    sims = text_vecs @ mat.T  # (prompts, skins) — legacy mean-pooled space
+
+    if args.v2:
+        from .query import search_skins
 
     k = args.topk
     rule_hits, base_rates, lifts = [], [], []
-    print(f"\n{'prompt':<52} {'top-k hit':>9} {'base':>6} {'sem lift':>9}")
+    print(f"\n{'prompt':<52} {'top-k hit':>9} {'base':>6} {'sem lift':>9}"
+          + ("   [v2 path]" if args.v2 else ""))
     for row, (prompt, rules) in enumerate(HELD_OUT):
-        top = np.argsort(-sims[row])[:k]
-        top_ids = [ids[i] for i in top]
-        sem_lift = float(sims[row][top].mean() - sims[row].mean())
+        if args.v2:
+            hits = search_skins(atlas, embedder, prompt, topk=k)
+            top_ids = [h["skin_id"] for h in hits]
+            id_index = {sid: i for i, sid in enumerate(ids)}
+            top_sims = [sims[row][id_index[sid]] for sid in top_ids if sid in id_index]
+            sem_lift = float(np.mean(top_sims) - sims[row].mean()) if top_sims else 0.0
+        else:
+            top = np.argsort(-sims[row])[:k]
+            top_ids = [ids[i] for i in top]
+            sem_lift = float(sims[row][top].mean() - sims[row].mean())
         lifts.append(sem_lift)
         if rules:
             valid = [sid for sid in ids if sid in feats]

@@ -48,6 +48,13 @@ PROBES = {
 DECAY_EDGES = np.array([0.12, 0.3, 0.8, 2.0, 5.0])       # 6 bins over 0.05..12s
 CENTROID_EDGES = np.array([300, 600, 1100, 2000, 3800])  # 6 bins over 150..8000
 FLATNESS_EDGES = np.array([0.05, 0.12, 0.25])            # 4 bins
+# 4th axis: MEASURED sustain class from the diag_sustain render (qd1 finding:
+# strike-only descriptors made sustained gestures invisible to the map —
+# coverage grew just +2 despite two new gestures). Phenotype, not genome type:
+# a friction skin that dies fast files as decaying; a long-ringing bell that
+# holds through the note files as sustaining.
+SUSTAIN_T60_GATE = 2.5
+N_CELLS = 6 * 6 * 4 * 2  # 288
 
 VOCAB = [
     "a delicate glass chime", "a wooden marimba hit", "a metal bell ringing",
@@ -73,11 +80,13 @@ def contrast_score(vec: np.ndarray, vocab_mat: np.ndarray, neg_mat: np.ndarray) 
     return float((vec @ vocab_mat.T).max() - (vec @ neg_mat.T).max())
 
 
-def cell_of(features: dict[str, float]) -> tuple[int, int, int]:
-    d = int(np.searchsorted(DECAY_EDGES, features["decay_t60_s"]))
-    c = int(np.searchsorted(CENTROID_EDGES, features["centroid_hz"]))
-    f = int(np.searchsorted(FLATNESS_EDGES, features["flatness"]))
-    return d, c, f
+def cell_of(strike_f: dict[str, float],
+            sustain_f: dict[str, float] | None) -> tuple[int, int, int, int]:
+    d = int(np.searchsorted(DECAY_EDGES, strike_f["decay_t60_s"]))
+    c = int(np.searchsorted(CENTROID_EDGES, strike_f["centroid_hz"]))
+    f = int(np.searchsorted(FLATNESS_EDGES, strike_f["flatness"]))
+    s = int(sustain_f is not None and sustain_f["decay_t60_s"] > SUSTAIN_T60_GATE)
+    return d, c, f, s
 
 
 def playability(rms_rho: float, cent_rho: float) -> float:
@@ -102,6 +111,7 @@ class Archive:
         path.write_text(json.dumps({
             "evals": evals,
             "coverage": len(self.cells),
+            "n_cells": N_CELLS,
             "qd_score": round(self.qd_score(), 3),
             "cells": {"/".join(map(str, k)): v for k, v in self.cells.items()},
         }, indent=1))
@@ -145,7 +155,9 @@ def main() -> None:
     genome_of: dict[str, Genome] = {}
 
     # ---- Seed the archive from existing scored skins (no new renders). ----
-    feats = atlas.skin_features()
+    # Per-probe features: strike carries the timbre axes, sustain the 4th axis.
+    feats = atlas.features_for_probe("diag_strike")
+    sus_feats = atlas.features_for_probe("diag_sustain")
     behavior = {sid: (r, c) for sid, r, c, ok in atlas.conn.execute(
         "SELECT skin_id, vel_rms_rho, vel_centroid_rho, ok FROM behavior").fetchall() if ok}
     render_ids, mat = atlas.render_matrix()
@@ -175,12 +187,16 @@ def main() -> None:
         play = playability(*behavior[sid])
         name = name_pct(name_by_skin[sid])
         fit = 0.5 * play + 0.5 * name
-        if archive.place(cell_of(f), sid, fit):
+        cell = cell_of(f, sus_feats.get(sid))
+        if archive.place(cell, sid, fit):
             atlas.conn.execute("INSERT OR REPLACE INTO qd VALUES (?,?,?,?,?,?)",
-                               (sid, "/".join(map(str, cell_of(f))), fit, play, name, "seed"))
+                               (sid, "/".join(map(str, cell)), fit, play, name, "seed"))
         seeded += 1
     atlas.commit()
-    print(f"[qd] seeded {seeded} skins -> coverage {len(archive.cells)}/144, "
+    if not archive.cells:
+        raise SystemExit("[qd] seeding produced zero elites — check probe naming "
+                         "and that the seed atlas has features/behavior/embeddings")
+    print(f"[qd] seeded {seeded} skins -> coverage {len(archive.cells)}/{N_CELLS}, "
           f"QD-score {archive.qd_score():.1f}", flush=True)
 
     checkpoint_path = args.out.with_suffix(".archive.json")
@@ -228,6 +244,8 @@ def main() -> None:
             if strike is None:
                 continue  # can't place without the canonical descriptor render
             f = extract_features(strike.audio)
+            sustain = per_candidate[i].get("diag_sustain")
+            f_sus = extract_features(sustain.audio) if sustain is not None else None
             r_rms, r_cent, ok = contract_score(g.skin_json("qd_ladder"))
             if not ok:
                 continue
@@ -239,7 +257,7 @@ def main() -> None:
             play = playability(r_rms, r_cent)
             fit = 0.5 * play + 0.5 * name
             sid = g.content_id()
-            cell = cell_of(f)
+            cell = cell_of(f, f_sus)
             was_empty = cell not in archive.cells
             if archive.place(cell, sid, fit):
                 new_cells += int(was_empty)
@@ -267,7 +285,7 @@ def main() -> None:
         atlas.commit()
         archive.checkpoint(checkpoint_path, evals)
         rate = evals / max(time.time() - t0, 1e-9)
-        print(f"[qd] {evals}/{args.evals} evals  coverage {len(archive.cells)}/144  "
+        print(f"[qd] {evals}/{args.evals} evals  coverage {len(archive.cells)}/{N_CELLS}  "
               f"QD {archive.qd_score():.1f}  (+{new_cells} new cells, {improved} improved, "
               f"{rate:.1f} evals/s)", flush=True)
 

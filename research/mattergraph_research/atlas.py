@@ -101,6 +101,18 @@ class Atlas:
             if rows else np.zeros((0, 512), dtype=np.float32)
         return ids, mat
 
+    def features_for_probe(self, probe: str) -> dict[str, dict[str, float]]:
+        """Per-skin features from ONE probe's renders — probe-averaged features
+        blur gesture identity (a pad's sustain is invisible in its strike)."""
+        # Prefix match: historical writers stored both "diag_strike" and
+        # "diag_strike.clipspec" (Path.stem on .clipspec.json keeps one suffix).
+        rows = self.conn.execute(
+            """SELECT r.skin_id, f.json FROM features f
+               JOIN renders r ON r.id = f.render_id
+               WHERE r.gate_passed = 1 AND r.probe LIKE ? || '%'""",
+            (probe,)).fetchall()
+        return {sid: json.loads(blob) for sid, blob in rows}
+
     def skin_features(self) -> dict[str, dict[str, float]]:
         rows = self.conn.execute(
             """SELECT r.skin_id, f.json FROM features f
