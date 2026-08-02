@@ -6,3 +6,4 @@ runs/
 research/.venv/
 *.sqlite
 assets/exciters/*.wav
+__pycache__/
