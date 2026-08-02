@@ -1,0 +1,42 @@
+{
+ "schema_version": "0.1.0",
+ "name": "deep_muted_plucks",
+ "skin_seed": 299,
+ "exciter": {
+  "type": "sample",
+  "hardness": 0.267568,
+  "color": 0.286534,
+  "level": 0.9,
+  "noisiness": 0.126108,
+  "roughness": 0.451059,
+  "grit_rate_hz": 160.256733,
+  "wave": 0.262683,
+  "detune_cents": 2.214469,
+  "drive": 0.371076,
+  "sample_blend": 0.985617,
+  "sample": "hat-closed-9f93bd6d.wav"
+ },
+ "body": {
+  "mode_count": 48,
+  "inharmonicity": 0.526505,
+  "brightness": 0.47163,
+  "t60_base_s": 0.568219,
+  "damping_slope": 0.082055,
+  "irregularity": 0.05621,
+  "position": 0.482497
+ },
+ "velocity": {
+  "to_level": 0.817216,
+  "to_brightness": 0.562567,
+  "to_hardness": 0.479951
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 5.329109
+ },
+ "radiation": {
+  "stereo_spread": 0.393938,
+  "gain": 0.45
+ },
+ "_tags": "a tiny music box note"
+}

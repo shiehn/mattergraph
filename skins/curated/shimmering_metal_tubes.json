@@ -1,0 +1,41 @@
+{
+ "schema_version": "0.1.0",
+ "name": "shimmering_metal_tubes",
+ "skin_seed": 754,
+ "exciter": {
+  "type": "friction",
+  "hardness": 0.923242,
+  "color": 0.176705,
+  "level": 0.9,
+  "noisiness": 0.79917,
+  "roughness": 0.451811,
+  "grit_rate_hz": 11.677738,
+  "wave": 0.702158,
+  "detune_cents": 2.890612,
+  "drive": 0.760413,
+  "sample_blend": 0.609148
+ },
+ "body": {
+  "mode_count": 23,
+  "inharmonicity": 0.422014,
+  "brightness": 0.891734,
+  "t60_base_s": 3.760406,
+  "damping_slope": 0.006699,
+  "irregularity": 0.572396,
+  "position": 0.158008
+ },
+ "velocity": {
+  "to_level": 0.98935,
+  "to_brightness": 0.773611,
+  "to_hardness": 0.885933
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 1.923148
+ },
+ "radiation": {
+  "stereo_spread": 0.747983,
+  "gain": 0.45
+ },
+ "_tags": "brilliant shimmering high-frequency strike"
+}

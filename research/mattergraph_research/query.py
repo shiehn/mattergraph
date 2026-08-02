@@ -109,6 +109,18 @@ def search_skins(atlas: Atlas, embedder: ClapEmbedder, prompt: str,
     if not filtered:  # constraints too strict for this atlas: disclose by falling back
         filtered = ranked
 
+    # Anchor-first tie preference (plan rev4 §0 change 10): hand-tuned anchors
+    # and human-kept curated skins outrank a random genome when scores are
+    # within epsilon — the quality floor should win ties, and retrieval top-1s
+    # stop re-rolling every time the atlas grows.
+    EPSILON = 0.02
+    if filtered:
+        top_score = filtered[0][1]
+        filtered.sort(key=lambda kv: (
+            -(kv[1] + (EPSILON if kv[0].startswith("anchor_")
+                       and kv[1] >= top_score - EPSILON else 0.0)),
+        ))
+
     out = []
     for sid, s in filtered[:topk]:
         f = feats.get(sid, {})

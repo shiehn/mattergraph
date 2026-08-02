@@ -1,0 +1,42 @@
+{
+ "schema_version": "0.1.0",
+ "name": "muted_tap",
+ "skin_seed": 196,
+ "exciter": {
+  "type": "sample",
+  "hardness": 0.446499,
+  "color": 0.695629,
+  "level": 0.9,
+  "noisiness": 0.23245,
+  "roughness": 0.245251,
+  "grit_rate_hz": 45.80588,
+  "wave": 0.198487,
+  "detune_cents": 7.161558,
+  "drive": 0.484343,
+  "sample_blend": 0.924813,
+  "sample": "clap-b906f20d.wav"
+ },
+ "body": {
+  "mode_count": 42,
+  "inharmonicity": 0.61343,
+  "brightness": 0.710158,
+  "t60_base_s": 0.398105,
+  "damping_slope": 0.53613,
+  "irregularity": 0.035161,
+  "position": 0.432829
+ },
+ "velocity": {
+  "to_level": 0.731723,
+  "to_brightness": 0.397886,
+  "to_hardness": 0.085086
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 4.551525
+ },
+ "radiation": {
+  "stereo_spread": 0.251734,
+  "gain": 0.45
+ },
+ "_tags": "short staccato click that stops immediately"
+}

@@ -1,0 +1,43 @@
+{
+ "schema_version": "0.1.0",
+ "name": "metal_chimes",
+ "skin_seed": 2125866281,
+ "exciter": {
+  "type": "sample",
+  "hardness": 0.394856,
+  "color": 0.05,
+  "level": 0.9,
+  "noisiness": 0.016207,
+  "roughness": 0.367873,
+  "grit_rate_hz": 57.202975,
+  "wave": 0.399626,
+  "detune_cents": 14.009876,
+  "drive": 0.0,
+  "sample_blend": 0.538912,
+  "sample": "clap-b906f20d.wav"
+ },
+ "body": {
+  "ratio_law": "string",
+  "mode_count": 26,
+  "inharmonicity": 0.475347,
+  "brightness": 0.785068,
+  "t60_base_s": 8.0,
+  "damping_slope": 0.447953,
+  "irregularity": 0.166035,
+  "position": 0.551644
+ },
+ "velocity": {
+  "to_level": 0.604637,
+  "to_brightness": 0.318205,
+  "to_hardness": 0.0
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 1.0
+ },
+ "radiation": {
+  "stereo_spread": 0.624053,
+  "gain": 0.45
+ },
+ "_tags": "a metal bell with a long sustained ring"
+}

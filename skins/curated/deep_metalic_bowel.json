@@ -1,0 +1,42 @@
+{
+ "schema_version": "0.1.0",
+ "name": "deep_metalic_bowel",
+ "skin_seed": 999734387,
+ "exciter": {
+  "type": "friction",
+  "hardness": 0.131633,
+  "color": 0.673083,
+  "level": 0.9,
+  "noisiness": 0.584677,
+  "roughness": 0.506534,
+  "grit_rate_hz": 110.817647,
+  "wave": 0.820359,
+  "detune_cents": 12.459914,
+  "drive": 1.0,
+  "sample_blend": 0.801755
+ },
+ "body": {
+  "ratio_law": "string",
+  "mode_count": 57,
+  "inharmonicity": 0.874811,
+  "brightness": 0.523017,
+  "t60_base_s": 8.0,
+  "damping_slope": 0.27121,
+  "irregularity": 0.08683,
+  "position": 0.771689
+ },
+ "velocity": {
+  "to_level": 0.910025,
+  "to_brightness": 0.585015,
+  "to_hardness": 0.331529
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 1.091278
+ },
+ "radiation": {
+  "stereo_spread": 0.692928,
+  "gain": 0.45
+ },
+ "_tags": "resonant singing bowl"
+}

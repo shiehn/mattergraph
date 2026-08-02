@@ -1,0 +1,43 @@
+{
+ "schema_version": "0.1.0",
+ "name": "muffled_thud",
+ "skin_seed": 502,
+ "exciter": {
+  "type": "sample",
+  "hardness": 0.052686,
+  "color": 0.352841,
+  "level": 0.9,
+  "noisiness": 0.167436,
+  "roughness": 0.672816,
+  "grit_rate_hz": 14.205197,
+  "wave": 0.872358,
+  "detune_cents": 1.0,
+  "drive": 0.144238,
+  "sample_blend": 0.503639,
+  "sample": "impact-30a415c3.wav"
+ },
+ "body": {
+  "ratio_law": "string",
+  "mode_count": 51,
+  "inharmonicity": 0.101415,
+  "brightness": 0.50905,
+  "t60_base_s": 0.178885,
+  "damping_slope": 0.782617,
+  "irregularity": 0.203942,
+  "position": 0.87155
+ },
+ "velocity": {
+  "to_level": 0.738629,
+  "to_brightness": 0.588869,
+  "to_hardness": 0.328739
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 3.071879
+ },
+ "radiation": {
+  "stereo_spread": 0.562185,
+  "gain": 0.45
+ },
+ "_tags": "a deep drum thump"
+}
