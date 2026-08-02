@@ -27,3 +27,30 @@
 {"t": 1785616852.298762, "prompt": "a bowed string drone", "skin_id": "g_f04a34b02a652af8", "verdict": "yes", "via": "phone"}
 {"t": 1785616877.647435, "prompt": "short staccato click that stops immediately", "skin_id": "g_40c7ceda9c59bfb5", "verdict": "yes", "via": "phone"}
 {"t": 1785617033.807013, "prompt": "a delicate glass chime with a clear ring", "skin_id": "g_cf120a07f81fc23e", "verdict": "yes", "via": "phone", "note": "retake after gesture gating"}
+{"t": 1785636384.092972, "prompt": "a delicate glass chime with a clear ring", "skin_id": "g_d2281367a844da49", "verdict": "no"}
+{"t": 1785636386.670491, "prompt": "a deep drum thump", "skin_id": "g_9a11a4927ecb0250", "verdict": "yes"}
+{"t": 1785636392.438228, "prompt": "a metal bell with a long sustained ring", "skin_id": "g_654b5c98390cc08d", "verdict": "yes"}
+{"t": 1785636398.995223, "prompt": "a warm wooden knock, like a marimba", "skin_id": "g_0820fbd5652664fc", "verdict": "no"}
+{"t": 1785636405.40894, "prompt": "short staccato click that stops immediately", "skin_id": "g_ad8b52dfc19243a2", "verdict": "yes"}
+{"t": 1785636409.1502259, "prompt": "brilliant shimmering high-frequency strike", "skin_id": "g_4874f441bb30ac84", "verdict": "yes"}
+{"t": 1785636417.254477, "prompt": "resonant singing bowl", "skin_id": "g_50a07a15e6b42845", "verdict": "yes"}
+{"t": 1785636423.2151659, "prompt": "a tiny music box note", "skin_id": "g_9c4e5ffcda772eeb", "verdict": "yes"}
+{"t": 1785636478.157871, "prompt": "trumpet", "skin_id": "g_5511882d320870f7", "verdict": "no"}
+{"t": 1785636513.7336829, "prompt": "church echo", "skin_id": "g_295839e7983cf388", "verdict": "yes"}
+{"t": 1785636535.405998, "prompt": "plucked acoustic guitar", "skin_id": "g_3cb35651b872414b", "verdict": "no"}
+{"t": 1785636556.340433, "prompt": "lion", "skin_id": "g_d20540b2ae738fc7", "verdict": "no"}
+{"t": 1785636566.260828, "prompt": "flute", "skin_id": "g_ee4a7dd258097a39", "verdict": "yes"}
+{"t": 1785636730.921799, "prompt": "a delicate glass chime with a clear ring", "skin_id": "g_654b5c98390cc08d", "verdict": "no"}
+{"t": 1785636732.612272, "prompt": "a deep drum thump", "skin_id": "g_9a11a4927ecb0250", "verdict": "yes"}
+{"t": 1785636736.773751, "prompt": "a metal bell with a long sustained ring", "skin_id": "g_654b5c98390cc08d", "verdict": "yes"}
+{"t": 1785636744.435342, "prompt": "short staccato click that stops immediately", "skin_id": "g_ad8b52dfc19243a2", "verdict": "yes"}
+{"t": 1785636746.3961039, "prompt": "brilliant shimmering high-frequency strike", "skin_id": "g_4874f441bb30ac84", "verdict": "yes"}
+{"t": 1785636751.660803, "prompt": "resonant singing bowl", "skin_id": "g_50a07a15e6b42845", "verdict": "yes"}
+{"t": 1785636754.292314, "prompt": "a tiny music box note", "skin_id": "g_9c4e5ffcda772eeb", "verdict": "yes"}
+{"t": 1785637043.269249, "prompt": "a delicate glass chime with a clear ring", "skin_id": "g_654b5c98390cc08d", "verdict": "yes"}
+{"t": 1785637060.939192, "prompt": "a deep drum thump", "skin_id": "g_9a11a4927ecb0250", "verdict": "yes"}
+{"t": 1785637088.061704, "prompt": "a metal bell with a long sustained ring", "skin_id": "g_654b5c98390cc08d", "verdict": "yes"}
+{"t": 1785637105.8904371, "prompt": "short staccato click that stops immediately", "skin_id": "g_ad8b52dfc19243a2", "verdict": "yes"}
+{"t": 1785637120.52264, "prompt": "brilliant shimmering high-frequency strike", "skin_id": "g_4874f441bb30ac84", "verdict": "yes"}
+{"t": 1785637145.730054, "prompt": "resonant singing bowl", "skin_id": "g_50a07a15e6b42845", "verdict": "yes"}
+{"t": 1785637165.218244, "prompt": "a tiny music box note", "skin_id": "g_9c4e5ffcda772eeb", "verdict": "yes"}

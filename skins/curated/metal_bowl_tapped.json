@@ -1,0 +1,41 @@
+{
+ "schema_version": "0.1.0",
+ "name": "metal_bowl_tapped",
+ "skin_seed": 584,
+ "exciter": {
+  "type": "friction",
+  "hardness": 0.004559,
+  "color": 0.313243,
+  "level": 0.9,
+  "noisiness": 0.092331,
+  "roughness": 0.861966,
+  "grit_rate_hz": 45.931498,
+  "wave": 0.892374,
+  "detune_cents": 1.637584,
+  "drive": 0.070528,
+  "sample_blend": 0.584146
+ },
+ "body": {
+  "mode_count": 12,
+  "inharmonicity": 0.937858,
+  "brightness": 0.56616,
+  "t60_base_s": 4.675907,
+  "damping_slope": 0.251512,
+  "irregularity": 0.21688,
+  "position": 0.227835
+ },
+ "velocity": {
+  "to_level": 0.706218,
+  "to_brightness": 0.147235,
+  "to_hardness": 0.904679
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 1.593847
+ },
+ "radiation": {
+  "stereo_spread": 0.213283,
+  "gain": 0.45
+ },
+ "_tags": "resonant singing bowl"
+}

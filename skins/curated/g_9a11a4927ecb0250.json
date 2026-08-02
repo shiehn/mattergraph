@@ -1,0 +1,42 @@
+{
+ "schema_version": "0.1.0",
+ "name": "g_9a11a4927ecb0250",
+ "skin_seed": 139,
+ "exciter": {
+  "type": "sample",
+  "hardness": 0.15118,
+  "color": 0.860266,
+  "level": 0.9,
+  "noisiness": 0.636238,
+  "roughness": 0.123148,
+  "grit_rate_hz": 18.906257,
+  "wave": 0.175558,
+  "detune_cents": 3.972454,
+  "drive": 0.460348,
+  "sample_blend": 0.862482,
+  "sample": "impact-30a415c3.wav"
+ },
+ "body": {
+  "mode_count": 63,
+  "inharmonicity": 0.546101,
+  "brightness": 0.092099,
+  "t60_base_s": 0.081648,
+  "damping_slope": 0.816476,
+  "irregularity": 0.037734,
+  "position": 0.260183
+ },
+ "velocity": {
+  "to_level": 0.743194,
+  "to_brightness": 0.3252,
+  "to_hardness": 0.040464
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 1.926056
+ },
+ "radiation": {
+  "stereo_spread": 0.591207,
+  "gain": 0.45
+ },
+ "_tags": "a deep drum thump"
+}
