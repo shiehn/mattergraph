@@ -1,0 +1,42 @@
+{
+ "schema_version": "0.1.0",
+ "name": "a_delicate_glass_chime_with_a_clear_ring",
+ "skin_seed": 456,
+ "exciter": {
+  "type": "sample",
+  "hardness": 0.069863,
+  "color": 0.989311,
+  "level": 0.9,
+  "noisiness": 0.161906,
+  "roughness": 0.079509,
+  "grit_rate_hz": 30.421251,
+  "wave": 0.335598,
+  "detune_cents": 6.045894,
+  "drive": 0.173182,
+  "sample_blend": 0.887927,
+  "sample": "snare-standard-e17de27a.wav"
+ },
+ "body": {
+  "mode_count": 21,
+  "inharmonicity": 0.948169,
+  "brightness": 0.972539,
+  "t60_base_s": 6.442535,
+  "damping_slope": 1.474607,
+  "irregularity": 0.141676,
+  "position": 0.130878
+ },
+ "velocity": {
+  "to_level": 0.775989,
+  "to_brightness": 0.619488,
+  "to_hardness": 0.088825
+ },
+ "release": {
+  "mode": "damped",
+  "damp_factor": 2.943237
+ },
+ "radiation": {
+  "stereo_spread": 0.290391,
+  "gain": 0.45
+ },
+ "_tags": "a delicate glass chime with a clear ring"
+}
