@@ -239,6 +239,82 @@ TEST_CASE("sample exciter renders deterministically from provided PCM") {
   CHECK_THROWS(renderTimeline(tl, skin, 3, 0.0, nullptr));
 }
 
+TEST_CASE("space stage: mix 0 is byte-identical bypass; mix > 0 is deterministic") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_strike.clipspec.json"), 48000);
+  const auto dry = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "sp0", "skin_seed": 5,
+    "body": {"mode_count": 8, "t60_base_s": 0.8},
+    "radiation": {"space_mix": 0.0}})");
+  const auto dry2 = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "sp0", "skin_seed": 5,
+    "body": {"mode_count": 8, "t60_base_s": 0.8}})");
+  REQUIRE(renderTimeline(tl, dry, 9).interleaved ==
+          renderTimeline(tl, dry2, 9).interleaved);
+
+  const auto wet = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "sp1", "skin_seed": 5,
+    "body": {"mode_count": 8, "t60_base_s": 0.8},
+    "radiation": {"space_mix": 0.3, "space_size": 0.6}})");
+  const RenderResult a = renderTimeline(tl, wet, 9);
+  const RenderResult b = renderTimeline(tl, wet, 9);
+  REQUIRE(a.interleaved == b.interleaved);
+  CHECK(a.stats.frames > renderTimeline(tl, dry, 9).stats.frames);  // tail extended
+}
+
+TEST_CASE("loop fold: render is exactly loop length and keeps the tail energy") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_strike.clipspec.json"), 48000);
+  // Quiet long-ringing skin: peaks stay < 0.999 in BOTH renders, so the safety
+  // stage never scales and fold conservation is observable directly.
+  const auto skin = mattergraph::skin::loadSoundSkinFromJson(R"({
+    "schema_version": "0.1.0", "name": "fold_test", "skin_seed": 3,
+    "body": {"mode_count": 10, "t60_base_s": 4.0},
+    "release": {"mode": "natural"},
+    "radiation": {"gain": 0.05}})");
+  const std::int64_t loop = 48000;  // 1 s
+  const RenderResult folded = renderTimeline(tl, skin, 4, 0.0, nullptr, loop);
+  CHECK(folded.stats.frames == loop);
+  const RenderResult full = renderTimeline(tl, skin, 4);
+  REQUIRE(full.stats.frames > loop);
+  REQUIRE(!folded.stats.peak_limited);
+  REQUIRE(!full.stats.peak_limited);
+  // Folding must carry MORE energy into the loop window than truncation.
+  auto energy = [](const std::vector<float>& x, std::size_t upto) {
+    double e = 0;
+    for (std::size_t i = 0; i < std::min(upto, x.size()); i++) e += double(x[i]) * x[i];
+    return e; };
+  const auto loopFrames = static_cast<std::size_t>(2 * loop);
+  CHECK(energy(folded.interleaved, loopFrames) >
+        energy(full.interleaved, loopFrames) * 1.01);
+}
+
+TEST_CASE("pluck_string: exact pitch, plucked decay, deterministic") {
+  const auto tl = buildTimelineFromClipSpecFile(fixture("probes/diag_sustain.clipspec.json"), 48000);
+  const auto skin = loadSoundSkinFromFile(skinPath("guitar_pluck.json"));
+  const RenderResult a = renderTimeline(tl, skin, 11);
+  const RenderResult b = renderTimeline(tl, skin, 11);
+  REQUIRE(a.audit.passed);
+  REQUIRE(a.interleaved == b.interleaved);
+  // Pitch: strongest energy at C3's fundamental (Goertzel probe, tail window).
+  const std::size_t n0 = 12000;
+  const std::size_t n1 = std::min<std::size_t>(60000, static_cast<std::size_t>(a.stats.frames));
+  std::vector<double> x(n1 - n0);
+  for (std::size_t n = n0; n < n1; ++n) {
+    x[n - n0] = double(a.interleaved[2 * n]) + double(a.interleaved[2 * n + 1]);
+  }
+  auto power_at = [&](double f) {
+    const double w = 2.0 * 3.14159265358979 * f / 48000.0;
+    double s0 = 0, s1 = 0, s2 = 0;
+    for (double v : x) { s0 = v + 2.0 * std::cos(w) * s1 - s2; s2 = s1; s1 = s0; }
+    return s1 * s1 + s2 * s2 - 2.0 * std::cos(w) * s1 * s2;
+  };
+  const double f0 = 130.8127826502993;  // C3
+  CHECK(power_at(f0) > power_at(f0 * 1.335) * 3.0);  // vs an off-harmonic point
+  // Plucked: decays while held (unlike friction's flat sustain).
+  const double early = windowRms(a.interleaved, 6000, 30000);
+  const double late = windowRms(a.interleaved, 120000, 144000);
+  CHECK(late < early * 0.8);
+}
+
 TEST_CASE("normalize option hits the requested peak") {
   const auto tl = buildTimelineFromClipSpecFile(fixture("probes/bass_groove.clipspec.json"), 48000);
   const auto skin = loadSoundSkinFromFile(skinPath("metal_bell.json"));

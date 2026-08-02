@@ -14,7 +14,8 @@ namespace mattergraph::skin {
 // This is the plan's SoundSkin (§2.1) at its smallest viable scope: genome
 // macros + velocity mappings + release behavior + radiation + provenance seed.
 
-enum class ExciterType { noise_burst, impulse, friction, sample, periodic };
+enum class ExciterType { noise_burst, impulse, friction, sample, periodic,
+                         pluck_string };
 enum class ReleaseMode { natural, damped };
 // Partial-frequency law of the body. "string": stiff-string stretch
 // r_k = k·sqrt(1+Bk²) (max stretch ≈ 1:2.3 — strings, bells-ish, plucks).
@@ -73,6 +74,10 @@ struct SoundSkin {
   struct Radiation {
     double stereo_spread{0.5}; // 0..1 per-mode pan spread
     double gain{0.35};         // 0..2 master gain before safety stage
+    // Space stage (deterministic Schroeder-lite). mix 0 = fully bypassed —
+    // pre-space skins render byte-identically.
+    double space_mix{0.0};     // 0..1 wet send
+    double space_size{0.3};    // 0..1 room size/decay/pre-delay
   } radiation;
 };
 

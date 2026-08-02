@@ -1,0 +1,19 @@
+{
+ "schema_version": "0.1.0",
+ "name": "guitar_pluck",
+ "skin_seed": 909,
+ "exciter": {"type": "pluck_string", "hardness": 0.6, "color": 0.55, "level": 0.9},
+ "body": {
+  "ratio_law": "string",
+  "mode_count": 14,
+  "inharmonicity": 0.06,
+  "brightness": 0.5,
+  "t60_base_s": 1.6,
+  "damping_slope": 0.8,
+  "irregularity": 0.08,
+  "position": 0.28
+ },
+ "velocity": {"to_level": 0.9, "to_brightness": 0.5, "to_hardness": 0.4},
+ "release": {"mode": "natural", "damp_factor": 1.0},
+ "radiation": {"stereo_spread": 0.4, "gain": 0.5, "space_mix": 0.14, "space_size": 0.25}
+}

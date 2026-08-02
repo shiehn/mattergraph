@@ -58,9 +58,12 @@ class RenderError : public std::runtime_error {
 // the peak sits at that level and records the gain in stats.
 // exciter_pcm: the loaded bank asset for `sample`-type skins (48 kHz mono);
 // required for those skins, ignored otherwise.
+// loop_samples > 0: fold everything past that point (release + space tails)
+// back onto the loop start — clips placed in a looping scene stay seamless.
 RenderResult renderTimeline(const midi::CanonicalTimeline& timeline,
                             const skin::SoundSkin& skin, std::uint64_t seed,
                             double normalize_peak_dbfs = 0.0,
-                            const std::vector<float>* exciter_pcm = nullptr);
+                            const std::vector<float>* exciter_pcm = nullptr,
+                            std::int64_t loop_samples = 0);
 
 }  // namespace mattergraph::render

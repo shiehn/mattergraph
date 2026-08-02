@@ -83,9 +83,11 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
         s.exciter.type = ExciterType::sample;
       } else if (type == "periodic") {
         s.exciter.type = ExciterType::periodic;
+      } else if (type == "pluck_string") {
+        s.exciter.type = ExciterType::pluck_string;
       } else {
-        fail("SoundSkin: exciter.type must be one of "
-             "'noise_burst', 'impulse', 'friction', 'sample', 'periodic'");
+        fail("SoundSkin: exciter.type must be one of 'noise_burst', 'impulse', "
+             "'friction', 'sample', 'periodic', 'pluck_string'");
       }
     }
     s.exciter.hardness = numInRange(e, "hardness", 0, 1, s.exciter.hardness, "exciter");
@@ -171,6 +173,10 @@ SoundSkin loadSoundSkinFromJson(std::string_view json_text) {
     s.radiation.stereo_spread =
         numInRange(r, "stereo_spread", 0, 1, s.radiation.stereo_spread, "radiation");
     s.radiation.gain = numInRange(r, "gain", 0, 2, s.radiation.gain, "radiation");
+    s.radiation.space_mix =
+        numInRange(r, "space_mix", 0, 1, s.radiation.space_mix, "radiation");
+    s.radiation.space_size =
+        numInRange(r, "space_size", 0, 1, s.radiation.space_size, "radiation");
   }
 
   return s;

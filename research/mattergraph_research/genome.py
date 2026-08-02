@@ -47,7 +47,9 @@ class Genome:
     drive: float = 0.3
     sample_file: str = ""
     sample_blend: float = 0.85
-    ratio_law: str = "string"  # "string" | "bar" (struck-bar partials, k^2)
+    ratio_law: str = "string"
+    space_mix: float = 0.0
+    space_size: float = 0.3  # "string" | "bar" (struck-bar partials, k^2)
 
     def skin_json(self, name: str) -> str:
         skin = {
@@ -90,6 +92,8 @@ class Genome:
             "radiation": {
                 "stereo_spread": round(self.stereo_spread, 6),
                 "gain": 0.45,
+                "space_mix": round(self.space_mix, 6),
+                "space_size": round(self.space_size, 6),
             },
         }
         return json.dumps(skin, indent=1)
@@ -129,6 +133,8 @@ class Genome:
             sample_file=str(e.get("sample", "")),
             sample_blend=float(e.get("sample_blend", 0.85)),
             ratio_law=str(b.get("ratio_law", "string")),
+            space_mix=float(rad.get("space_mix", 0.0)),
+            space_size=float(rad.get("space_size", 0.3)),
         )
 
 
@@ -154,11 +160,13 @@ _CONTINUOUS = [
     ("detune_cents", 1.0, 30.0, True),
     ("drive", 0.0, 1.0, False),
     ("sample_blend", 0.5, 1.0, False),
+    ("space_mix", 0.0, 0.35, False),
+    ("space_size", 0.0, 1.0, False),
 ]
 _MODE_COUNT_RANGE = (4, 64)
 # Exciter-type mix for sampling: strike-heavy, the three others equal-ish.
-_TYPE_CUTS = [(0.45, "noise_burst"), (0.65, "friction"), (0.83, "periodic"),
-              (1.01, "sample")]
+_TYPE_CUTS = [(0.38, "noise_burst"), (0.54, "friction"), (0.68, "periodic"),
+              (0.84, "sample"), (1.01, "pluck_string")]
 
 _MANIFEST_PATH = Path(__file__).resolve().parents[2] / "assets/exciters/manifest.json"
 
@@ -195,9 +203,11 @@ def mutate(g: Genome, rng: np.random.Generator, mutation_rate: float = 0.35,
         lo_m, hi_m = _MODE_COUNT_RANGE
         values["mode_count"] = int(np.clip(g.mode_count + rng.integers(-8, 9), lo_m, hi_m))
     if rng.random() < 0.08:
-        choices = ["noise_burst", "friction", "periodic"] + (["sample"] if bank else [])
+        choices = ["noise_burst", "friction", "periodic", "pluck_string"] + (["sample"] if bank else [])
         choices = [c for c in choices if c != g.exciter_type]
         values["exciter_type"] = choices[int(rng.integers(len(choices)))]
+    if values["exciter_type"] != "sample":
+        pass
     if values["exciter_type"] == "sample":
         if not values.get("sample_file") or rng.random() < 0.15:
             values["sample_file"] = bank[int(rng.integers(len(bank)))] if bank else ""

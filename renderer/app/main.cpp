@@ -33,6 +33,7 @@ struct Args {
   std::filesystem::path exciter_dir;
   std::uint64_t seed = 0;
   std::uint32_t sample_rate = 48000;
+  std::int64_t loop_samples = 0;
   std::optional<double> normalize_dbfs;
 };
 
@@ -62,6 +63,8 @@ std::optional<Args> parseArgs(int argc, char** argv) {
       a.normalize_dbfs = std::stod(v);
     } else if (flag == "--exciter-dir" && (v = next())) {
       a.exciter_dir = v;
+    } else if (flag == "--loop-samples" && (v = next())) {
+      a.loop_samples = std::stoll(v);
     } else {
       return std::nullopt;
     }
@@ -129,7 +132,7 @@ int main(int argc, char** argv) {
   try {
     result = mattergraph::render::renderTimeline(
         timeline, skin, args->seed, args->normalize_dbfs.value_or(0.0),
-        exciter_pcm.empty() ? nullptr : &exciter_pcm);
+        exciter_pcm.empty() ? nullptr : &exciter_pcm, args->loop_samples);
   } catch (const std::exception& e) {
     std::cerr << "render failure: " << e.what() << "\n";
     return 4;

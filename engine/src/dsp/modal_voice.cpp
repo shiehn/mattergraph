@@ -240,6 +240,55 @@ ModalVoice::ModalVoice(const skin::SoundSkin& skin, const midi::NoteEvent& note,
     return;
   }
 
+  if (skin.exciter.type == skin::ExciterType::pluck_string) {
+    // --- Karplus-Strong plucked string driving the modal body. ---
+    // The string supplies the plucked identity (exact pitch, natural decay);
+    // the body supplies material color — string-into-resonator, physically.
+    // Deterministic: seeded initial noise, fixed loop; string t60 shares
+    // body.t60_base_s so one gene governs the whole note's life.
+    const double loop_len = sr / f0_;
+    const auto L = std::max<std::size_t>(2, static_cast<std::size_t>(loop_len));
+    const double frac = loop_len - static_cast<double>(L);
+    const double string_t60 = std::max(skin.body.t60_base_s, 0.05);
+    const double loop_gain =
+        std::pow(10.0, -3.0 * static_cast<double>(L) / (string_t60 * sr));
+    const double tail_extra = std::min(string_t60, 6.0);
+    const auto drive_n = static_cast<std::size_t>(std::min(
+        static_cast<double>(off_sample_ - on_sample_) + tail_extra * sr, 30.0 * sr));
+    burst_.assign(std::max<std::size_t>(drive_n, L + 1), 0.0);
+
+    std::vector<double> line(L, 0.0);
+    Rng noise(deriveStream(render_seed,
+                           0x506C756BULL ^ static_cast<std::uint64_t>(note.source_index)));
+    const double lp_a = mix(0.03, 0.9, std::pow(color_v, 1.5));
+    double lp = 0.0;
+    for (std::size_t n = 0; n < L; ++n) {  // pluck = colored noise fill
+      lp += lp_a * (noise.bipolar() - lp);
+      line[n] = lp;
+    }
+    std::size_t head = 0;
+    double prev = 0.0;
+    for (std::size_t n = 0; n < burst_.size(); ++n) {
+      const std::size_t i0 = head;
+      const std::size_t i1 = (head + 1) % L;
+      const double sample = line[i0] * (1.0 - frac) + line[i1] * frac;
+      // Loop filter: two-point average (classic KS damping) scaled to t60.
+      line[head] = loop_gain * 0.5 * (sample + prev);
+      prev = sample;
+      head = (head + 1) % L;
+      burst_[n] = sample;
+    }
+    normalizeEnergy(burst_);
+    for (double& s : burst_) {
+      s *= energy;
+    }
+    const double tail_s = std::min(t60_release_max + 0.05, kMaxTailSeconds);
+    end_sample_ = off_sample_ + static_cast<std::int64_t>(
+                                    std::max(tail_s, tail_extra) * sr) + 1;
+    gain_ = skin.radiation.gain;
+    return;
+  }
+
   if (skin.exciter.type == skin::ExciterType::friction) {
     // --- Sustained friction excitation: the first non-strike gesture. ---
     // Colored noise drives the body for the note's whole duration, amplitude-
