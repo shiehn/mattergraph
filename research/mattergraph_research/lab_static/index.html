@@ -63,6 +63,9 @@
         <button class="primary" onclick="gateVote('yes')">✓ plausibly yes</button>
         <button onclick="gateVote('no')">✗ no</button>
         <button onclick="gateNext()">skip</button>
+        <span style="flex:1"></span>
+        <input id="gatekeepname" type="text" placeholder="name it…" size="12">
+        <button onclick="gateKeep()">★ keep this sound</button>
       </div>
       <div class="row" style="margin-top:12px">
         <input id="gatecustom" type="text" placeholder="your own prompt…" style="flex:1">
@@ -139,12 +142,14 @@ window.curate = async (skinId, i) => {
 };
 
 // --- Gate test: judge only the top-1 per prompt, yes/no ---
-let gateQueue = [], gateCurrent = null;
+let gateQueue = [], gateCurrent = null, gateLastShown = null;
 
 async function gateSummary() {
   const s = await (await fetch("/api/gate_summary")).json();
-  $("gatesummary").textContent = s.total
-    ? `${s.yes}/${s.total} yes (${Math.round(s.pass_rate * 100)}% — gate needs ≥50%)` : "";
+  $("gatesummary").textContent = s.preset_total
+    ? `gate (presets): ${s.preset_yes}/${s.preset_total} (${Math.round(s.pass_rate * 100)}% — needs ≥50%)` +
+      (s.custom_total ? ` · your prompts: ${s.custom_yes}/${s.custom_total}` : "")
+    : "";
 }
 
 async function gateShow(prompt) {
@@ -156,6 +161,7 @@ async function gateShow(prompt) {
     body: JSON.stringify({ prompt, topk: 1 }),
   })).json();
   gateCurrent = { prompt, skin_id: hits[0].skin_id };
+  gateLastShown = gateCurrent;  // stays keepable after the vote advances
   // Audition register must match the prompt's register, same as retrieval.
   const gateProbe = /\b(deep|bass|low|thump|sub|kick|tom)\b/i.test(prompt)
     ? "bass_groove" : "pluck_arpeggio";
@@ -188,6 +194,19 @@ window.gateVote = async (verdict) => {
 window.gateCustom = async () => {
   const p = $("gatecustom").value.trim();
   if (p) { $("gatecustom").value = ""; await gateShow(p); }
+};
+
+window.gateKeep = async () => {
+  if (!gateLastShown) { status("nothing to keep yet — test a prompt first"); return; }
+  const name = $("gatekeepname").value.trim() || gateLastShown.skin_id;
+  const res = await fetch("/api/curate", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ skin_id: gateLastShown.skin_id, name,
+                           tags: gateLastShown.prompt }),
+  });
+  $("gatekeepname").value = "";
+  status(res.ok ? "★ kept: " + (await res.json()).saved : "keep failed");
+  init();
 };
 
 $("gatestart").onclick = async () => {

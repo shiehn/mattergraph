@@ -21,10 +21,15 @@ from .clap_embed import ClapEmbedder
 # (trigger words, feature, op, threshold) — stopgap until SoundSpec parsing.
 CONSTRAINT_HINTS: list[tuple[tuple[str, ...], str, str, float]] = [
     (("staccato", "click", "tick", "dry", "short"), "decay_t60_s", "<", 0.5),
+    # Struck-wood words imply wooden brevity (marimba served a 1s clap hybrid).
+    (("knock", "marimba", "woodblock", "xylophone", "mallet"), "decay_t60_s", "<", 0.8),
     (("ring", "ringing", "sustain", "sustained", "chime", "bell", "bowl", "gong"),
      "decay_t60_s", ">", 1.0),
     (("deep", "dark", "muffled", "thump", "dull"), "centroid_hz", "<", 950.0),
-    (("bright", "shimmering", "sparkling", "brilliant", "icy"), "centroid_hz", ">", 1300.0),
+    # "chime" joined the bright pole: chimes are bright by definition (a 542 Hz
+    # "delicate glass chime" top-1 failed human audition).
+    (("bright", "shimmering", "sparkling", "brilliant", "icy", "chime", "chimes",
+      "delicate"), "centroid_hz", ">", 1100.0),
 ]
 
 # Percussiveness axis: calibrated against NSynth human labels, AUC 0.995

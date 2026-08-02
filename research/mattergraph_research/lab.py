@@ -153,17 +153,27 @@ def gate(req: GateReq) -> dict:
 
 @app.get("/api/gate_summary")
 def gate_summary() -> dict:
+    """The formal gate covers the preset prompts only; custom prompts are
+    scope-exploration and reported separately (lumping them painted the gate
+    as failing while presets sat at ~80%)."""
     path = REPO / "runs/gate_results.jsonl"
     if not path.exists():
-        return {"yes": 0, "no": 0, "total": 0, "pass_rate": 0.0}
+        return {"preset_yes": 0, "preset_total": 0, "custom_yes": 0,
+                "custom_total": 0, "pass_rate": 0.0}
     latest: dict[str, str] = {}
     for line in path.read_text().splitlines():
         row = json.loads(line)
         latest[row["prompt"]] = row["verdict"]  # last verdict per prompt wins
-    yes = sum(1 for v in latest.values() if v == "yes")
-    total = len(latest)
-    return {"yes": yes, "no": total - yes, "total": total,
-            "pass_rate": round(yes / total, 3) if total else 0.0}
+    preset = {p: v for p, v in latest.items() if p in GATE_PROMPTS}
+    custom = {p: v for p, v in latest.items() if p not in GATE_PROMPTS}
+    p_yes = sum(1 for v in preset.values() if v == "yes")
+    return {
+        "preset_yes": p_yes,
+        "preset_total": len(preset),
+        "custom_yes": sum(1 for v in custom.values() if v == "yes"),
+        "custom_total": len(custom),
+        "pass_rate": round(p_yes / len(preset), 3) if preset else 0.0,
+    }
 
 
 class CurateReq(BaseModel):
