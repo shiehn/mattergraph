@@ -1,0 +1,15 @@
+{
+  "schema_version": "0.1.0",
+  "name": "high_arp",
+  "description": "High-register audition probe: C6-C7 sparkle arpeggio. Chime/delicate prompts were being auditioned on pluck_arpeggio (tops at C5) — two octaves below a chime's natural register (the bass-register lesson, mirrored upward).",
+  "bpm": 108,
+  "notes": [
+    {"pitch": 84, "start_qn": 0.0, "dur_qn": 0.45, "vel": 88,  "chan": 0},
+    {"pitch": 88, "start_qn": 0.5, "dur_qn": 0.45, "vel": 96,  "chan": 0},
+    {"pitch": 91, "start_qn": 1.0, "dur_qn": 0.45, "vel": 104, "chan": 0},
+    {"pitch": 96, "start_qn": 1.5, "dur_qn": 0.7,  "vel": 112, "chan": 0},
+    {"pitch": 91, "start_qn": 2.25, "dur_qn": 0.45, "vel": 92, "chan": 0},
+    {"pitch": 88, "start_qn": 2.75, "dur_qn": 0.45, "vel": 84, "chan": 0},
+    {"pitch": 84, "start_qn": 3.25, "dur_qn": 0.9,  "vel": 100, "chan": 0}
+  ]
+}

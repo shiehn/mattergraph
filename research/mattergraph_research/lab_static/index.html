@@ -162,9 +162,12 @@ async function gateShow(prompt) {
   })).json();
   gateCurrent = { prompt, skin_id: hits[0].skin_id };
   gateLastShown = gateCurrent;  // stays keepable after the vote advances
-  // Audition register must match the prompt's register, same as retrieval.
+  // Audition register must match the prompt's register, same as retrieval —
+  // in BOTH directions (chimes were auditioning two octaves low).
   const gateProbe = /\b(deep|bass|low|thump|sub|kick|tom)\b/i.test(prompt)
-    ? "bass_groove" : "pluck_arpeggio";
+    ? "bass_groove"
+    : /\b(delicate|chimes?|tiny|icy|sparkl\w*|glisten\w*|music box|high|bells?)\b/i.test(prompt)
+      ? "high_arp" : "pluck_arpeggio";
   $("gatemeta").textContent =
     `top-1: ${hits[0].skin_id} · cos ${hits[0].cos.toFixed(3)} · t60 ${hits[0].decay_t60_s}s · probe: ${gateProbe}`;
   $("gateplayer").innerHTML =
